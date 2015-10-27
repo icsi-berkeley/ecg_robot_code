@@ -1,0 +1,11 @@
+{
+
+ "Robot1, move to the green box!": {"parameters": [{"p_features": {"voice": "notPassive"}, "goal": {"objectDescriptor": {"negated": false, "number": "singular", "type": "box", "gender": "genderValues", "kind": "None", "color": "green", "givenness": "uniquelyIdentifiable"}}, "kind": "execute", "collaborative": false, "heading": null, "action": "move", "control_state": "ongoing", "speed": 0.5, "distance": {"value": 4, "units": "square"}, "protagonist": {"objectDescriptor": {"referent": "robot1_instance", "type": "robot"}}, "direction": null}], "return_type": "error_descriptor", "predicate_type": "command"}, 
+
+
+ "Robot1, move to the brown desk!": {"parameters": [{"p_features": {"voice": "notPassive"}, "goal": {"objectDescriptor": {"negated": false, "number": "singular", "type": "desk", "gender": "genderValues", "kind": "None", "color": "brown", "givenness": "uniquelyIdentifiable"}}, "kind": "execute", "collaborative": false, "heading": null, "action": "move", "control_state": "ongoing", "speed": 0.5, "distance": {"value": 4, "units": "square"}, "protagonist": {"objectDescriptor": {"referent": "robot1_instance", "type": "robot"}}, "direction": null}], "return_type": "error_descriptor", "predicate_type": "command"}, 
+
+
+ "Robot1, move to the blue box!": {"parameters": [{"p_features": {"voice": "notPassive"}, "goal": {"objectDescriptor": {"negated": false, "number": "singular", "type": "box", "gender": "genderValues", "kind": "None", "color": "blue", "givenness": "uniquelyIdentifiable"}}, "kind": "execute", "collaborative": false, "heading": null, "action": "move", "control_state": "ongoing", "speed": 0.5, "distance": {"value": 4, "units": "square"}, "protagonist": {"objectDescriptor": {"referent": "robot1_instance", "type": "robot"}}, "direction": null}], "return_type": "error_descriptor", "predicate_type": "command"}
+
+}
