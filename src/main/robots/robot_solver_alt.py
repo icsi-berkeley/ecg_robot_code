@@ -67,6 +67,10 @@ class BasicRobotProblemSolver(CoreProblemSolver):
         if obj:
             self._home = obj.pos
 
+    def solve_serial(self, parameters, predicate):
+        self.route_action(parameters['process1'], predicate)
+        self.route_action(parameters['process2'], predicate)
+
     def solve_command(self, ntuple):
         self.set_home(ntuple)
         parameters = ntuple['parameters']
