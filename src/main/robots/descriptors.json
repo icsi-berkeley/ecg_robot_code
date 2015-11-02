@@ -6,6 +6,7 @@
         "givenness": "givenness",
         "number": "number",
         "specificWh": "specificWh",
+        "description": {"parameters": "description"},
         "gender": "gender",
         "pointers": {
             "PropertyModifier": {"property": "value"},
@@ -26,6 +27,10 @@
     "processFeatures": {
         "tense": "tense",
         "voice": "voice",
+        "negated": "negated"
+    },
+    "eventFeatures": {
+        "modality": "modality",
         "negated": "negated"
     }
 }

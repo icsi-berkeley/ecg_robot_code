@@ -61,8 +61,8 @@ class BasicRobotProblemSolver(CoreProblemSolver):
 
 
     def set_home(self, ntuple):
-        parameters = ntuple['parameters']
-        prot = parameters[0]['protagonist']
+        parameters = ntuple['eventDescriptor']['eventProcess']
+        prot = parameters['protagonist']
         obj = self.get_described_object(prot['objectDescriptor'])
         if obj:
             self._home = obj.pos
@@ -73,13 +73,12 @@ class BasicRobotProblemSolver(CoreProblemSolver):
 
     def solve_command(self, ntuple):
         self.set_home(ntuple)
-        parameters = ntuple['parameters']
-        for param in parameters:
-            self.route_action(param, "command")
+        parameters = ntuple['eventDescriptor']
+        self.route_event(parameters, "command")
 
     def solve_query(self, ntuple):
-        for param in ntuple['parameters']:
-            self.route_action(param, "query")
+        param = ntuple['eventDescriptor']
+        self.route_event(param, "query")
 
 
     def command_move(self, parameters):
@@ -575,11 +574,11 @@ class BasicRobotProblemSolver(CoreProblemSolver):
         self.decoder.pprint_ntuple(ntuple)
 
     def solve_conditional_imperative(self, ntuple):
-        parameters = ntuple['parameters']
-        condition = parameters[0]['condition'][0]
+        parameters = ntuple['eventDescriptor']
+        condition = parameters['condition']['eventProcess']
+        core = parameters['core']
         if self.evaluate_condition(condition):
-            for params in parameters[0]['core']:
-                self.route_action(params, "command")
+            self.route_event(core, "command")
 
     # Conditional declaratives not yet implemented for robots
     def solve_conditional_declarative(self, ntuple):
