@@ -5,7 +5,7 @@ Author: seantrott <seantrott@icsi.berkeley.edu>
 """
 
 # TODO
-from robot_solver_alt import *
+from robot_solver import *
 from robot_utils.avoidance import TwoDimensionalAvoidanceSolver
 
 class MorseRobotProblemSolver(BasicRobotProblemSolver, TwoDimensionalAvoidanceSolver):

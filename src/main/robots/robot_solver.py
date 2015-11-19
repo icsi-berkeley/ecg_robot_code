@@ -42,6 +42,13 @@ class BasicRobotProblemSolver(CoreProblemSolver):
                               'small': 1}
         self._weight_cutoffs = {'heavy': 7,
                               'light': 6}
+
+
+        self._ranges = {'box': {'size': [.5, 3],
+                                'weight': [1, 14]},
+                         'robot': {'size': [.5, 1],
+                                    'weight': [1, 4]}}
+
         self._home = None
         self._distance_multipliers = {'box': 1.3,
                                     'robot': .7}
@@ -54,24 +61,24 @@ class BasicRobotProblemSolver(CoreProblemSolver):
 
 
     def set_home(self, ntuple):
-        parameters = ntuple['parameters']
-        if parameters[0]['kind'] == "cause":
-            prot = parameters[0]['causer']
-        else:
-            prot = parameters[0]['protagonist']
+        parameters = ntuple['eventDescriptor']['eventProcess']
+        prot = parameters['protagonist']
         obj = self.get_described_object(prot['objectDescriptor'])
         if obj:
             self._home = obj.pos
 
+    def solve_serial(self, parameters, predicate):
+        self.route_action(parameters['process1'], predicate)
+        self.route_action(parameters['process2'], predicate)
+
     def solve_command(self, ntuple):
         self.set_home(ntuple)
-        parameters = ntuple['parameters']
-        for param in parameters:
-            self.route_action(param, "command")
+        parameters = ntuple['eventDescriptor']
+        self.route_event(parameters, "command")
 
     def solve_query(self, ntuple):
-        for param in ntuple['parameters']:
-            self.route_action(param, "query")
+        param = ntuple['eventDescriptor']
+        self.route_event(param, "query")
 
 
     def command_move(self, parameters):
@@ -90,11 +97,17 @@ class BasicRobotProblemSolver(CoreProblemSolver):
 
         information['protagonist'] = self.get_described_object(parameters['protagonist']['objectDescriptor'])
         information['speed'] = parameters['speed'] * self._speed
-        if parameters['goal']:
-            information['destination'] =self.goal_info(parameters['goal'], information['protagonist'])
+        #spg = selparameters['spg']
+
+        spg = parameters['spg']['spgDescriptor']
+
+        if spg['goal']:
+            information['destination'] =self.goal_info(spg['goal'], information['protagonist'])
         elif parameters['heading']:
-            information['destination'] = self.heading_info(information['protagonist'], parameters['heading'], parameters['distance'])
+            information['destination'] = self.heading_info(information['protagonist'], parameters['heading'], parameters['distance']['scaleDescriptor'])
         return information
+
+
 
     def goal_info(self, goal, protagonist=None):
         destination = dict(x=None, y=None, z=0.0)
@@ -143,20 +156,20 @@ class BasicRobotProblemSolver(CoreProblemSolver):
         info = self.get_push_info(parameters)
         if info['goal']:
             # Create self.push_to_location
-            self.push_to_location(info['acted_upon'], info['goal'], info['pusher'])
+            self.push_to_location(info['actedUpon'], info['goal'], info['pusher'])
             
         elif info['heading']:
-            self.push_direction(info['heading'], info['acted_upon'], info['distance'], info['pusher'])
+            self.push_direction(info['heading'], info['actedUpon'], info['distance'], info['pusher'])
 
-    def push_to_location(self, acted_upon, goal, pusher):
+    def push_to_location(self, actedUpon, goal, pusher):
         self.identification_failure(message=self._incapable)
-        og = acted_upon.pos.__dict__
+        og = actedUpon.pos.__dict__
         #print("Original location: {}".format(og))
         #print("Goal location: {}".format(goal))
 
 
-    def push_direction(self, heading, acted_upon, distance, pusher):
-        info = self.get_push_direction_info(heading, acted_upon, distance['value'])
+    def push_direction(self, heading, actedUpon, distance, pusher):
+        info = self.get_push_direction_info(heading, actedUpon, distance['scaleDescriptor']['value'])
         self.move(pusher, info['x1'], info['y1'], tolerance=3)
         self.move(pusher, info['x2'], info['y2'], tolerance=3, collide=True)
 
@@ -173,18 +186,18 @@ class BasicRobotProblemSolver(CoreProblemSolver):
 
     def get_push_info(self, parameters):
         heading = parameters['affectedProcess']['heading']
-        pusher = self.get_described_object(parameters['causer']['objectDescriptor'])
-        goal = parameters['affectedProcess']['goal']
+        pusher = self.get_described_object(parameters['protagonist']['objectDescriptor'])
+        goal = parameters['affectedProcess']['spg']['spgDescriptor']['goal']
         distance = parameters['affectedProcess']['distance']
         info = dict(goal=None,
                     heading=None,
-                    acted_upon=None,
+                    actedUpon=None,
                     distance=None,
                     pusher=None)
-        obj = self.get_described_object(parameters['causalProcess']['acted_upon']['objectDescriptor'])
-        info['acted_upon'] = obj
+        obj = self.get_described_object(parameters['causalProcess']['actedUpon']['objectDescriptor'])
+        info['actedUpon'] = obj
         if goal:
-            info['goal'] = self.goal_info(parameters['affectedProcess']['goal'])
+            info['goal'] = self.goal_info(goal)
         info['heading'] = parameters['affectedProcess']['heading'] #self.heading_info(obj, parameters.affectedProcess['heading'], distance)
         info['distance'] = distance
         info['pusher'] = pusher
@@ -285,10 +298,10 @@ class BasicRobotProblemSolver(CoreProblemSolver):
     def get_described_process(self, objs, description):
         # TODO: Let's assume, for now, that we're just describing "one" parameterized action.
         description = description[0]
-        described_action = description['action']
+        described_action = description['actionary']
         for entry in self.history:
             parameters, successful = entry[0], entry[1]
-            new_action = parameters['action']
+            new_action = parameters['actionary']
             if successful and (new_action == described_action):
                 dispatch = getattr(self, "match_{}".format(new_action))
                 objs = dispatch(objs, parameters)
@@ -300,7 +313,7 @@ class BasicRobotProblemSolver(CoreProblemSolver):
         E.g., "move to the box Robot2 pushed", vs. "move to the robot that pushed Box2"
         TODO: Figure this out.
         """
-        description = parameters['causalProcess']['acted_upon']['objectDescriptor']
+        description = parameters['causalProcess']['actedUpon']['objectDescriptor']
         obj = self.get_described_object(description)
         if obj in objs:
             return [obj]
@@ -310,8 +323,6 @@ class BasicRobotProblemSolver(CoreProblemSolver):
         if 'referent' in description:
             if hasattr(self.world, description['referent']):
                 return [getattr(self.world, description['referent'])]
-            else:
-                return []
         obj_type = description['type']
         objs = []
         for item in self.world.__dict__.keys():
@@ -325,12 +336,13 @@ class BasicRobotProblemSolver(CoreProblemSolver):
                     copy.append(obj)
             objs = copy
         kind = description['kind'] if 'kind' in description else 'unmarked'
-        if 'size' in description:
+        if 'size' in description or 'weight' in description:
             size = description['size']
-            objs = self.evaluate_feature(size, kind, objs)
+            objs = self.evaluate_scalar_attribute("size", size, objs, kind)
+            #objs = self.evaluate_feature(size, kind, objs)
         if 'weight' in description:
             weight = description['weight']
-            objs = self.evaluate_feature(weight, kind, objs)
+            objs = self.evaluate_scalar_attribute("weight", weight, objs, kind)
         if 'locationDescriptor' in description:
             objs = self.get_described_location(objs, description['locationDescriptor'], multiple=multiple)
 
@@ -365,35 +377,26 @@ class BasicRobotProblemSolver(CoreProblemSolver):
             self.identification_failure(message)
             return None
 
-    def evaluate_feature(self, feature, kind, objs):
-        """ Could probably be generalized to other properties."""
+    def evaluate_scalar_attribute(self, attribute, value, objs, kind):
         if kind == "superlative":
-            dispatch = getattr(self, "get_{}est".format(feature))
-            objs = dispatch(objs)
+            pass
         elif kind == "comparative":
             pass
-            # Do something?
         else:
-            dispatch = getattr(self, "get_{}".format(feature))
-            objs = dispatch(objs)
-        return objs
+            copy = []
+            for obj in objs:
+                if self.evaluate_individual_attribute(attribute, value, obj):
+                    copy.append(obj)
+            return copy
 
+    def evaluate_individual_attribute(self, attribute, value, obj):
+        ranges = self._ranges[obj.type][attribute]
+        obj_attribute = getattr(obj, attribute)
+        if value > .5:
+            return obj_attribute >= (ranges[-1]-ranges[0])/2
+        else:
+            return obj_attribute <= (ranges[-1]-ranges[0])/2
 
-    def get_big(self, objs):
-        bigs = []
-        big_cutoff = self._size_cutoffs['big']
-        for i in objs:
-            if float(i.size) >= big_cutoff:
-                bigs.append(i)
-        return bigs
-
-    def get_small(self, objs):
-        smalls = []
-        small_cutoff = self._size_cutoffs['small']
-        for i in objs:
-            if float(i.size) <= small_cutoff:
-                smalls.append(i)
-        return smalls
 
     def get_heavyest(self, objs):
         heaviest = objs[0]
@@ -453,7 +456,7 @@ class BasicRobotProblemSolver(CoreProblemSolver):
         for key, value in properties.items():   # Creates string of properties
             if key == "referent":
                 return value[0].upper() + value.replace("_instance", "")[1:]
-            if key == "color" or key == "size":
+            if key == "color": # or key == "size":
                 attributes += " " + value 
             if key == "location":
                 attributes += " "  + value
@@ -475,7 +478,7 @@ class BasicRobotProblemSolver(CoreProblemSolver):
     def eval_wh(self, parameters, return_type):
         num, referentType = return_type.split("::")
         protagonist = parameters['protagonist']
-        predication = parameters['predication']
+        predication = parameters['state']
         dispatch = getattr(self, "eval_{}".format(parameters['specificWh']))
         dispatch(protagonist, predication, num)
 
@@ -513,11 +516,11 @@ class BasicRobotProblemSolver(CoreProblemSolver):
     def evaluate_condition(self, parameters):
         protagonist = self.get_described_object(parameters['protagonist']['objectDescriptor'])
         if protagonist:
-            negated = parameters['predication']['negated']
+            negated = parameters['state']['negated']
             if negated:
-                return not self.evaluate_obj_predication(protagonist, parameters['predication'])
+                return not self.evaluate_obj_predication(protagonist, parameters['state'])
             else:
-                return self.evaluate_obj_predication(protagonist, parameters['predication'])
+                return self.evaluate_obj_predication(protagonist, parameters['state'])
 
 
     def compare_features(self, feature, comparator, obj1, obj2):
@@ -529,16 +532,12 @@ class BasicRobotProblemSolver(CoreProblemSolver):
         kind = predication['kind'] if 'kind' in predication else 'unmarked'
         for k, v in predication.items():
             if k == "size" or k == "weight":
-                # TODO: also incorporate object type??
-                fn = int.__le__ if v in ["small", "light"] else int.__ge__
-                if kind == "comparative":
-                    fn = int.__lt__ if v in ["small", "light"] else int.__gt__
-                    compared = self.get_described_object(predication['base']['objectDescriptor'])
-                    if not self.compare_features(k, fn, obj, compared):
-                        return False
-
-                elif not fn(getattr(obj, k), getattr(self, "_{}_cutoffs".format(k))[v]): #self._size_cutoffs[v]:
-                    return False
+                ranges = self._ranges[obj.type][k]
+                attribute = getattr(obj, k)
+                if v > .5:
+                    return attribute >= (ranges[-1]-ranges[0])/2
+                else:
+                    return attribute <= (ranges[-1]-ranges[0])/2
             elif k == "identical":
                 return self.is_identical(obj, predication['identical']['objectDescriptor'])
             elif k == 'relation':
@@ -575,11 +574,11 @@ class BasicRobotProblemSolver(CoreProblemSolver):
         self.decoder.pprint_ntuple(ntuple)
 
     def solve_conditional_imperative(self, ntuple):
-        parameters = ntuple['parameters']
-        condition = parameters[0]['condition'][0]
+        parameters = ntuple['eventDescriptor']
+        condition = parameters['condition']['eventProcess']
+        core = parameters['core']
         if self.evaluate_condition(condition):
-            for params in parameters[0]['command']:
-                self.route_action(params, "command")
+            self.route_event(core, "command")
 
     # Conditional declaratives not yet implemented for robots
     def solve_conditional_declarative(self, ntuple):

@@ -2,7 +2,7 @@
 Author: seantrott <seantrott@icsi.berkeley.edu>
 """
 
-from nluas.language.core_specializer_alt import *
+from nluas.language.core_specializer import *
 import os
 path = os.getcwd() + "/src/main/robots/"
 
