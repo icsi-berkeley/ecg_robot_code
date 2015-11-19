@@ -30,9 +30,3 @@ class RobotSpecializer(CoreSpecializer, RobotTemplateSpecializer):
         self.event_templates = self.read_templates(os.path.join(dir_name, "event_templates.json"))
 
 
-    """
-    def params_for_perception(self, process, params):
-        perceived = self.get_objectDescriptor(process.content)
-        params.update(content=perceived)
-        return params
-    """
