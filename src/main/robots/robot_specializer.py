@@ -4,7 +4,7 @@ Author: seantrott <seantrott@icsi.berkeley.edu>
 
 from nluas.language.core_specializer import *
 import os
-path = os.getcwd() + "/src/main/robots/"
+dir_name = os.path.dirname(os.path.realpath(__file__))
 
 #filepath = "/Users/seantrott/icsi/nlu-core/src/main/robots/robot_templates.json"
 
@@ -24,16 +24,15 @@ class RobotSpecializer(CoreSpecializer, RobotTemplateSpecializer):
 
 
     def initialize_templates(self):
-        self.parameter_templates = self.read_templates(path+"parameter_templates.json")
-        self.mood_templates = self.read_templates(path+"mood_templates.json")
-        self.descriptor_templates = self.read_templates(path+"descriptors.json")
-        self.event_templates = self.read_templates(path + "event_templates.json")
+        self.parameter_templates = self.read_templates(os.path.join(dir_name, "parameter_templates.json"))
+        self.mood_templates = self.read_templates(os.path.join(dir_name, "mood_templates.json"))
+        self.descriptor_templates = self.read_templates(os.path.join(dir_name, "descriptors.json"))
+        self.event_templates = self.read_templates(os.path.join(dir_name, "event_templates.json"))
 
-    
+
     """
     def params_for_perception(self, process, params):
         perceived = self.get_objectDescriptor(process.content)
         params.update(content=perceived)
         return params
     """
-
