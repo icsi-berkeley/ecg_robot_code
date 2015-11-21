@@ -24,7 +24,9 @@ class CCIProblemSolver(BasicRobotProblemSolver):
 
 
 	def move(self, agent, x, y, z=0.0, speed=2, tolerance=3.5, collide=False):
-		pass
+		commandInfo = {'commandName': 'moveToXY',
+					   'commArgs': [x, y]}
+		return commandInfo
 		# TO DO: makes API call to CCI/ROS-interface, instructs AGENT to move to coordinate (x, y)
 
 	def moveToPose(self, agent, x, y, rotation):
@@ -35,3 +37,7 @@ class CCIProblemSolver(BasicRobotProblemSolver):
 		pass
 		# TO DO: makes API call to CCI/Ros-interface, instructs AGENT to grasp object_name
 		# Note: "command_grasp" will move to object location, then call this method
+
+
+if __name__ == "__main__":
+    solver = CCIProblemSolver(sys.argv[1:])
