@@ -16,7 +16,7 @@ Initial goals:
 """
 
 
-from robot_solver import *
+from robots.robot_solver import *
 
 class CCIProblemSolver(BasicRobotProblemSolver):
 	def __init__(self, args):

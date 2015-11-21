@@ -23,7 +23,7 @@ from action/query functions. Thus, we'd have several functions involving "move",
 
 from nluas.app.core_solver import *
 from nluas.utils import *
-from builder import *
+from robots.builder import *
 import sys
 import random
 from math import sqrt
