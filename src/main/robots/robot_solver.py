@@ -482,6 +482,18 @@ class BasicRobotProblemSolver(CoreProblemSolver):
         dispatch = getattr(self, "eval_{}".format(parameters['specificWh']))
         dispatch(protagonist, predication, num)
 
+    def eval_what(self, protagonist, predication, num):
+        # What is the color of the box?
+        # Protagonist=color, predication={identical: {box}}
+        prop = protagonist['objectDescriptor']['type']
+        obj = self.get_described_object(predication['identical']['objectDescriptor'])
+        if obj:
+            if hasattr(obj, prop):
+                value = getattr(obj, prop)
+                self.respond_to_query(message=str(value))
+            else:
+                self.identification_failure("Object {} does not have the property {}.".format(obj.name, prop))
+
     def eval_where(self, protagonist, predication=None, num="singleton"):
         obj = self.get_described_object(protagonist['objectDescriptor'])
         if obj and len(obj) >= 1:
