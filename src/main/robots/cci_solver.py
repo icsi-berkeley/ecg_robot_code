@@ -24,11 +24,14 @@ class CCIProblemSolver(BasicRobotProblemSolver):
 	def __init__(self, args):
 		BasicRobotProblemSolver.__init__(self, args)
 
+	def publish(self, commandName, commArgs):
+		print("Publishing command '{}' with parameters '{}'.".format(commandName, str(commArgs)))
+		pass
+		# This will publish to the ROS interface
+
 
 	def move(self, agent, x, y, z=0.0, speed=2, tolerance=3.5, collide=False):
-		commandInfo = {'commandName': 'moveToXY',
-					   'commArgs': [x, y]}
-		print(commandInfo)
+		self.publish('moveToXY', [x, y])
 		# TO DO: makes API call to CCI/ROS-interface, instructs AGENT to move to coordinate (x, y)
 
 	def moveToPose(self, agent, x, y, rotation):
@@ -43,3 +46,5 @@ class CCIProblemSolver(BasicRobotProblemSolver):
 
 if __name__ == "__main__":
     solver = CCIProblemSolver(sys.argv[1:])
+
+

@@ -506,7 +506,7 @@ class BasicRobotProblemSolver(CoreProblemSolver):
             reply = ""
             index = 0
             while index < len(copy):
-                reply += "{}".format(copy[index].name)
+                reply += "{}".format(copy[index].name.replace("_instance", ""))
                 if index < (len(copy) - 1):
                     reply += ", "
                 index += 1
