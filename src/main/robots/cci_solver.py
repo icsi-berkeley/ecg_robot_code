@@ -12,6 +12,8 @@ Initial goals:
 -move to an object
 -grasp an object
 
+This should "publish" commands to ROS/CCI.
+
 
 """
 
@@ -26,7 +28,7 @@ class CCIProblemSolver(BasicRobotProblemSolver):
 	def move(self, agent, x, y, z=0.0, speed=2, tolerance=3.5, collide=False):
 		commandInfo = {'commandName': 'moveToXY',
 					   'commArgs': [x, y]}
-		return commandInfo
+		print(commandInfo)
 		# TO DO: makes API call to CCI/ROS-interface, instructs AGENT to move to coordinate (x, y)
 
 	def moveToPose(self, agent, x, y, rotation):
