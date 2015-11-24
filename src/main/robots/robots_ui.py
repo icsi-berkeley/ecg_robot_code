@@ -4,7 +4,7 @@ Similar to a regular UserAgent, but it uses a RobotSpecializer instead.
 """
 
 from nluas.language.user_agent import *
-from robot_specializer import *
+from robots.robot_specializer import *
 import sys
 import subprocess
 
