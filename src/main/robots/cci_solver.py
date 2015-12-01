@@ -20,7 +20,6 @@ import rospy
 
 import inspect
 from std_msgs.msg import *
-from ecg_uas.ecg_uas import UserAgentSolver
 from gazebo_msgs.msg import ModelStates,LinkStates
 
 from robots.robot_solver import *
