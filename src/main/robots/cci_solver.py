@@ -57,7 +57,7 @@ class CCIProblemSolver(BasicRobotProblemSolver):
     def build_world(self):
         self.model = rospy.Subscriber("/gazebo/model_states",ModelStates,self.update_world,queue_size=1)
         world = Struct()
-        robot = Struct('robot1_instance'=(Struct(name='robot1_instance', pos=Struct(x=0.0, y=0.0, z=0.0), type="robot", size=1, weight=1)))
+        robot = Struct(name='robot1_instance', pos=Struct(x=0.0, y=0.0, z=0.0), type="robot", size=1, weight=1)
         setattr(world, 'robot1_instance', robot)
         return world
         
