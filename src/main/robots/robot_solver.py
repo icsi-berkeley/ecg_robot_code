@@ -355,7 +355,6 @@ class BasicRobotProblemSolver(CoreProblemSolver):
 
     def get_described_object(self, description, multiple=False):
         objs = self.get_described_objects(description, multiple)
-        print(objs)
         if len(objs) == 1:
             self._recent = objs[0]
             return objs[0]

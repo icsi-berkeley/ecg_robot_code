@@ -55,6 +55,7 @@ class CCIProblemSolver(BasicRobotProblemSolver):
 
 
     def build_world(self):
+        # TO DO
         self.model = rospy.Subscriber("/gazebo/model_states",ModelStates,self.update_world,queue_size=1)
         world = Struct()
         robot = Struct(name='robot1_instance', pos=Struct(x=0.0, y=0.0, z=0.0), type="robot", size=1, weight=1)
@@ -64,6 +65,7 @@ class CCIProblemSolver(BasicRobotProblemSolver):
 
 
     def update_world(self, msg):
+        # TO DO: This
         for pos, item in enumerate(msg):
             print(pos)
             print(item)
@@ -74,6 +76,6 @@ class CCIProblemSolver(BasicRobotProblemSolver):
 
 if __name__ == "__main__":
     solver = CCIProblemSolver(sys.argv[1:])
-    print(solver.world)
+    rospy.init_node("nlu_solver")
 
 
