@@ -71,5 +71,6 @@ class CCIProblemSolver(BasicRobotProblemSolver):
 
 if __name__ == "__main__":
     solver = CCIProblemSolver(sys.argv[1:])
+    print(solver.world)
 
 
