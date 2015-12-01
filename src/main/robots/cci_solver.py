@@ -17,6 +17,7 @@ This should "publish" commands to ROS/CCI.
 
 """
 import rospy
+
 import inspect
 from std_msgs.msg import *
 from ecg_uas.ecg_uas import UserAgentSolver
@@ -54,5 +55,7 @@ class CCIProblemSolver(BasicRobotProblemSolver):
 
 if __name__ == "__main__":
     solver = CCIProblemSolver(sys.argv[1:])
+    rospy.loginfo("Starting NLU system...")
+    rospy.init_node("nlu_solver")
 
 
