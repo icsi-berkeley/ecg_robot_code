@@ -21,6 +21,7 @@ import rospy
 import inspect
 from std_msgs.msg import *
 from gazebo_msgs.msg import ModelStates,LinkStates
+from geometry_msgs.msg import Twist
 
 from robots.robot_solver import *
 
@@ -29,6 +30,7 @@ class CCIProblemSolver(BasicRobotProblemSolver):
         BasicRobotProblemSolver.__init__(self, args)
         self.publisher = rospy.Publisher('/cqi/command', String, queue_size=5)
         rospy.sleep(1)
+        self.world = self.build_world()
 
     def publish(self, commandName, commArgs):
         # Bit hacky, need to check that this works for non-move commands...
@@ -40,7 +42,8 @@ class CCIProblemSolver(BasicRobotProblemSolver):
 
     def move(self, agent, x, y, z=0.0, speed=2, tolerance=3.5, collide=False):
         self.publish('moveToXY', [x, y])
-        # TO DO: makes API call to CCI/ROS-interface, instructs AGENT to move to coordinate (x, y)
+        self.update_world()
+
 
     def moveToPose(self, agent, x, y, rotation):
         pass
@@ -52,9 +55,22 @@ class CCIProblemSolver(BasicRobotProblemSolver):
         # Note: "command_grasp" will move to object location, then call this method
 
 
+    def build_world(self):
+        self.model = rospy.Subscriber(ns+"model_states",ModelStates,self._cb_modeldata,queue_size=1)
+        return {}
+        
+
+
+    def update_world(self, msg):
+        for pos, item in enumerate(msg):
+            print(pos)
+            print(item)
+
+
+
+
+
 if __name__ == "__main__":
     solver = CCIProblemSolver(sys.argv[1:])
-    rospy.loginfo("Starting NLU system...")
-    rospy.init_node("nlu_solver")
 
 
