@@ -42,7 +42,6 @@ class CCIProblemSolver(BasicRobotProblemSolver):
 
     def move(self, agent, x, y, z=0.0, speed=2, tolerance=3.5, collide=False):
         self.publish('moveToXY', [x, y])
-        self.update_world()
 
 
     def moveToPose(self, agent, x, y, rotation):
@@ -56,7 +55,7 @@ class CCIProblemSolver(BasicRobotProblemSolver):
 
 
     def build_world(self):
-        self.model = rospy.Subscriber(ns+"model_states",ModelStates,self._cb_modeldata,queue_size=1)
+        self.model = rospy.Subscriber("/gazebo/model_states",ModelStates,self.update_world,queue_size=1)
         return {}
         
 
