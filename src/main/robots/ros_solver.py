@@ -66,12 +66,11 @@ class ROSProblemSolver(BasicRobotProblemSolver):
 
     def update_world(self, msg):
         # TO DO: This
-        pass
-        """
         for pos, item in enumerate(msg.name):
             print(pos)
             print(item)
-        """
+            
+        
 
 
 
