@@ -124,6 +124,7 @@ class BasicRobotProblemSolver(CoreProblemSolver):
         elif 'objectDescriptor' in goal:
             obj = self.get_described_object(goal['objectDescriptor'], multiple=True)
             #print(obj)
+            print(obj)
             if obj:
                 destination['x'] = obj.pos.x
                 destination['y'] = obj.pos.y
