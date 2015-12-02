@@ -42,6 +42,7 @@ class ROSProblemSolver(BasicRobotProblemSolver):
 
     def move(self, agent, x, y, z=0.0, speed=2, tolerance=3.5, collide=False):
         self.publish('moveToXY', [x, y])
+        print(self.world)
 
 
     def moveToPose(self, agent, x, y, rotation):
@@ -55,21 +56,27 @@ class ROSProblemSolver(BasicRobotProblemSolver):
 
 
     def build_world(self):
-        # TO DO
+        # TODO
         self.model = rospy.Subscriber("/gazebo/model_states",ModelStates,self.update_world,queue_size=1)
         world = Struct()
-        robot = Struct(name='robot1_instance', pos=Struct(x=0.0, y=0.0, z=0.0), type="robot", size=1, weight=1)
-        setattr(world, 'robot1_instance', robot)
+        # Hack?
+        robot = Struct(name='darwin', pos=Struct(x=0.0, y=0.0, z=0.0), type="robot", size=1, weight=1)
+        setattr(world, 'darwin', robot)
         return world
         
 
 
     def update_world(self, msg):
-        # TO DO: This
+        # TODO: This
         for pos, item in enumerate(msg.name):
-            print(pos)
-            print(item)
-            
+            #print(pos)
+            #print(item)
+            #print(msg.pose[pos])
+            if not hasattr(self.world, item):
+                new = msg.pose[pos]
+                print(new)
+                setattr(world, item, new)
+
         
 
 
