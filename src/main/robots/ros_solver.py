@@ -42,7 +42,6 @@ class ROSProblemSolver(BasicRobotProblemSolver):
 
     def move(self, agent, x, y, z=0.0, speed=2, tolerance=3.5, collide=False):
         self.publish('moveToXY', [x, y])
-        print(self.world)
 
 
     def moveToPose(self, agent, x, y, rotation):
@@ -73,11 +72,10 @@ class ROSProblemSolver(BasicRobotProblemSolver):
             #print(item)
             #print(msg.pose[pos])
             if not hasattr(self.world, item):
-                print(msg)
                 value = msg.pose[pos]
+                print(dir(msg))
                 #new = Struct(pos=value['position'], orientation=value['orientation'], name=item)
                 setattr(self.world, item, value)
-        print(self.world)
 
         
 
