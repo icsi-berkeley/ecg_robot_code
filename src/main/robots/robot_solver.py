@@ -498,8 +498,8 @@ class BasicRobotProblemSolver(CoreProblemSolver):
     def eval_where(self, protagonist, predication, num="singleton"):
         obj = self.get_described_object(predication['identical']['objectDescriptor'])
         if obj and len(obj) >= 1:
-                message = "The position of the {} is: x:{}, y:{}".format(self.assemble_string(predication['objectDescriptor']), obj.pos.x, obj.pos.y)
-                message = "The position of the {} is: ({}, {})".format(self.assemble_string(predication['objectDescriptor']), obj.pos.x, obj.pos.y)
+                message = "The position of the {} is: x:{}, y:{}".format(self.assemble_string(predication['identical']['objectDescriptor']), obj.pos.x, obj.pos.y)
+                message = "The position of the {} is: ({}, {})".format(self.assemble_string(predication['identical']['objectDescriptor']), obj.pos.x, obj.pos.y)
                 self.respond_to_query(message)
 
     def eval_which(self, protagonist, predication, num):
