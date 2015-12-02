@@ -75,7 +75,7 @@ class ROSProblemSolver(BasicRobotProblemSolver):
             if not hasattr(self.world, item):
                 new = msg.pose[pos]
                 print(new)
-                setattr(world, item, new)
+                setattr(self.world, item, new)
 
         
 
