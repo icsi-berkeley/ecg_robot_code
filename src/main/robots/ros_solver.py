@@ -71,10 +71,12 @@ class ROSProblemSolver(BasicRobotProblemSolver):
             #print(pos)
             #print(item)
             #print(msg.pose[pos])
-            if not hasattr(self.world, item):
-                value = msg.pose[pos]
-                new = Struct(pos=value.position, orientation=value.orientation, name=item)
-                setattr(self.world, item, new)
+            #if not hasattr(self.world, item):
+            value = msg.pose[pos]
+            new = Struct(pos=value.position, orientation=value.orientation, name=item)
+            setattr(self.world, item, new)
+            #else:
+
 
         
 
