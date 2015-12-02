@@ -495,11 +495,11 @@ class BasicRobotProblemSolver(CoreProblemSolver):
             else:
                 self.identification_failure("Object {} does not have the property {}.".format(obj.name, prop))
 
-    def eval_where(self, protagonist, predication=None, num="singleton"):
-        obj = self.get_described_object(protagonist['objectDescriptor'])
+    def eval_where(self, protagonist, predication, num="singleton"):
+        obj = self.get_described_object(predication['objectDescriptor'])
         if obj and len(obj) >= 1:
-                message = "The position of the {} is: x:{}, y:{}".format(self.assemble_string(protagonist['objectDescriptor']), obj.pos.x, obj.pos.y)
-                message = "The position of the {} is: ({}, {})".format(self.assemble_string(protagonist['objectDescriptor']), obj.pos.x, obj.pos.y)
+                message = "The position of the {} is: x:{}, y:{}".format(self.assemble_string(predication['objectDescriptor']), obj.pos.x, obj.pos.y)
+                message = "The position of the {} is: ({}, {})".format(self.assemble_string(predication['objectDescriptor']), obj.pos.x, obj.pos.y)
                 self.respond_to_query(message)
 
     def eval_which(self, protagonist, predication, num):
