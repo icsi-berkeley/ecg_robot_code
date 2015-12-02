@@ -496,7 +496,7 @@ class BasicRobotProblemSolver(CoreProblemSolver):
                 self.identification_failure("Object {} does not have the property {}.".format(obj.name, prop))
 
     def eval_where(self, protagonist, predication, num="singleton"):
-        obj = self.get_described_object(predication['objectDescriptor'])
+        obj = self.get_described_object(predication['identical']['objectDescriptor'])
         if obj and len(obj) >= 1:
                 message = "The position of the {} is: x:{}, y:{}".format(self.assemble_string(predication['objectDescriptor']), obj.pos.x, obj.pos.y)
                 message = "The position of the {} is: ({}, {})".format(self.assemble_string(predication['objectDescriptor']), obj.pos.x, obj.pos.y)
