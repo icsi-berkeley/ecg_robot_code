@@ -77,6 +77,7 @@ class ROSProblemSolver(BasicRobotProblemSolver):
                 value = msg.pose[pos]
                 #new = Struct(pos=value['position'], orientation=value['orientation'], name=item)
                 setattr(self.world, item, value)
+        print(self.world)
 
         
 
