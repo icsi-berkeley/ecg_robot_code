@@ -124,7 +124,6 @@ class BasicRobotProblemSolver(CoreProblemSolver):
         elif 'objectDescriptor' in goal:
             obj = self.get_described_object(goal['objectDescriptor'], multiple=True)
             #print(obj)
-            print(obj)
             if obj:
                 destination['x'] = obj.pos.x
                 destination['y'] = obj.pos.y
@@ -455,8 +454,8 @@ class BasicRobotProblemSolver(CoreProblemSolver):
         ont = properties['type']
         attributes = ""
         for key, value in properties.items():   # Creates string of properties
-            if key == "referent":
-                return value[0].upper() + value.replace("_instance", "")[1:]
+            #if key == "referent":
+            #    return value[0].upper() + value.replace("_instance", "")[1:]
             if key == "color": # or key == "size":
                 attributes += " " + value 
             if key == "location":
