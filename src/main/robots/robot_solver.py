@@ -28,6 +28,9 @@ import sys
 import random
 from math import sqrt
 
+import os
+dir_name = os.path.dirname(os.path.realpath(__file__))
+
 class BasicRobotProblemSolver(CoreProblemSolver):
     def __init__(self, args):
         CoreProblemSolver.__init__(self, args)
@@ -54,6 +57,16 @@ class BasicRobotProblemSolver(CoreProblemSolver):
                                     'robot': .7}
         self._distance_threshold = 4
         self._attributes = ['size', 'color', 'weight']
+
+
+    def build_world(self, external_file):
+        world = Struct()
+        with open(os.path.join(dir_name, external_file), "r") as data:
+            model = json.load(data)
+        for k, v in model.items():
+            value = Struct(v)
+            setattr(world, k, value)
+        return world
 
     def euclidean_distance(self, p, q):
         """ Gets euclidean distance between objects p and q. Takes in objects themselves. """
@@ -488,7 +501,7 @@ class BasicRobotProblemSolver(CoreProblemSolver):
         if "type" not in protagonist['objectDescriptor']:
             obj = self.get_described_object(predication['identical']['objectDescriptor'])
             if obj:
-                self.respond_to_query(message=str(obj.type))
+                self.respond_to_query(message="a {}".format(str(obj.type)))
             else:
                 self.identification_failure("Object {} not found.".format(self.assemble_string(predication['identical']['objectDescriptor'])))
         else:

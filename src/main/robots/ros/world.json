@@ -1,5 +1,9 @@
 {"beer": {"size": 1,
 		  "color": "brown",
 		  "type": "beer",
-		  "weight": 1}
+		  "weight": 1},
+ "Darwin": {"size": 2,
+			"color": "white",
+			"type": "robot",
+			"weight": 1}
 }

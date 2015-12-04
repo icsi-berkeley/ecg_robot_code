@@ -34,7 +34,7 @@ class ROSProblemSolver(BasicRobotProblemSolver):
         BasicRobotProblemSolver.__init__(self, args)
         self.publisher = rospy.Publisher('/cqi/command', String, queue_size=5)
         rospy.sleep(1)
-        self.world = self.build_world()
+        self.world = self.build_world(external_file="ros/world.json")
 
     def publish(self, commandName, commArgs):
         # Bit hacky, need to check that this works for non-move commands...
@@ -58,20 +58,21 @@ class ROSProblemSolver(BasicRobotProblemSolver):
         # Note: "command_grasp" will move to object location, then call this method
 
 
-    def build_world(self, external_file=None):
+    def build_world(self, external_file):
         # TODO
         self.model = rospy.Subscriber("/gazebo/model_states",ModelStates,self.update_world,queue_size=1)
+        world = BasicRobotProblemSolver.build_world(external_file)
+        return world
+        """
+        
         world = Struct()
-        # Hack?
-        robot = Struct(name='darwin', pos=Struct(x=0.0, y=0.0, z=0.0), type="robot", size=1, weight=1)
-
-        setattr(world, 'darwin', robot)
         with open(os.path.join(dir_name, "ros/world.json"), "r") as data:
             model = json.load(data)
         for k, v in model.items():
             value = Struct(v)
             setattr(world, k, value)
         return world
+        """
         
 
 
