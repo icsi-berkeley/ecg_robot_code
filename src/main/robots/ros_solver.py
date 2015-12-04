@@ -58,7 +58,7 @@ class ROSProblemSolver(BasicRobotProblemSolver):
         # Note: "command_grasp" will move to object location, then call this method
 
 
-    def build_world(self):
+    def build_world(self, external_file=None):
         # TODO
         self.model = rospy.Subscriber("/gazebo/model_states",ModelStates,self.update_world,queue_size=1)
         world = Struct()

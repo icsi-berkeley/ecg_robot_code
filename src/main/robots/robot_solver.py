@@ -454,8 +454,8 @@ class BasicRobotProblemSolver(CoreProblemSolver):
         ont = properties['type']
         attributes = ""
         for key, value in properties.items():   # Creates string of properties
-            #if key == "referent":
-            #    return value[0].upper() + value.replace("_instance", "")[1:]
+            if key == "referent":
+                return value[0].upper() + value.replace("_instance", "")[1:]
             if key == "color": # or key == "size":
                 attributes += " " + value 
             if key == "location":
