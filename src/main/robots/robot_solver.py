@@ -485,14 +485,21 @@ class BasicRobotProblemSolver(CoreProblemSolver):
     def eval_what(self, protagonist, predication, num):
         # What is the color of the box?
         # Protagonist=color, predication={identical: {box}}
-        prop = protagonist['objectDescriptor']['type']
-        obj = self.get_described_object(predication['identical']['objectDescriptor'])
-        if obj:
-            if hasattr(obj, prop):
-                value = getattr(obj, prop)
-                self.respond_to_query(message=str(value))
+        if "type" not in protagonist['objectDescriptor']:
+            obj = self.get_described_object(predication['identical']['objectDescriptor'])
+            if obj:
+                self.respond_to_query(message=str(obj.type))
             else:
-                self.identification_failure("Object {} does not have the property {}.".format(obj.name, prop))
+                self.identification_failure("Object {} not found.".format(self.assemble_string(predication['identical']['objectDescriptor'])))
+        else:
+            prop = protagonist['objectDescriptor']['type']
+            obj = self.get_described_object(predication['identical']['objectDescriptor'])
+            if obj:
+                if hasattr(obj, prop):
+                    value = getattr(obj, prop)
+                    self.respond_to_query(message=str(value))
+                else:
+                    self.identification_failure("Object {} does not have the property {}.".format(obj.name, prop))
 
     def eval_where(self, protagonist, predication, num="singleton"):
         obj = self.get_described_object(predication['identical']['objectDescriptor'])
