@@ -62,7 +62,6 @@ class ROSProblemSolver(BasicRobotProblemSolver):
         # TODO
         self.model = rospy.Subscriber("/gazebo/model_states",ModelStates,self.update_world,queue_size=1)
         world = BasicRobotProblemSolver.build_world(self, external_file)
-        print(world)
         return world
         """
         
@@ -87,6 +86,7 @@ class ROSProblemSolver(BasicRobotProblemSolver):
             else:
                 obj = getattr(self.world, item)
                 obj.update(dict(pos=pose.position, orientation=pose.orientation, name=item))
+                print(self.world)
 
 
 
