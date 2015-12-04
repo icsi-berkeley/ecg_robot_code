@@ -66,7 +66,7 @@ class ROSProblemSolver(BasicRobotProblemSolver):
         robot = Struct(name='darwin', pos=Struct(x=0.0, y=0.0, z=0.0), type="robot", size=1, weight=1)
 
         setattr(world, 'darwin', robot)
-        with open("ros/world.json", "r") as data:
+        with open(path + "ros/world.json", "r") as data:
             model = json.load(data)
         for k, v in model.items():
             value = Struct(v)
