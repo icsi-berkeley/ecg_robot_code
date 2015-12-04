@@ -27,6 +27,8 @@ import os
 
 from robots.robot_solver import *
 
+path = os.getcwd() + "src/main/robots/"
+
 class ROSProblemSolver(BasicRobotProblemSolver):
     def __init__(self, args):
         BasicRobotProblemSolver.__init__(self, args)
@@ -64,7 +66,7 @@ class ROSProblemSolver(BasicRobotProblemSolver):
         robot = Struct(name='darwin', pos=Struct(x=0.0, y=0.0, z=0.0), type="robot", size=1, weight=1)
 
         setattr(world, 'darwin', robot)
-        with open(os.getcwd() + "ros/world.json", "r") as data:
+        with open("ros/world.json", "r") as data:
             model = json.load(data)
         for k, v in model.items():
             value = Struct(v)
