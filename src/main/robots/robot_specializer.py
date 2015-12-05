@@ -8,10 +8,9 @@ dir_name = os.path.dirname(os.path.realpath(__file__))
 
 #filepath = "/Users/seantrott/icsi/nlu-core/src/main/robots/robot_templates.json"
 
-class RobotSpecializer(CoreSpecializer, RobotTemplateSpecializer):
+class RobotSpecializer(CoreSpecializer):
     def __init__(self, analyzer_port):
         CoreSpecializer.__init__(self, analyzer_port)
-        RobotTemplateSpecializer.__init__(self)
 
         self.parameter_templates = {}
         self.mood_templates = {}

@@ -63,18 +63,6 @@ class ROSProblemSolver(BasicRobotProblemSolver):
         self.model = rospy.Subscriber("/gazebo/model_states",ModelStates,self.update_world,queue_size=1)
         world = BasicRobotProblemSolver.build_world(self, external_file)
         return world
-        """
-        
-        world = Struct()
-        with open(os.path.join(dir_name, "ros/world.json"), "r") as data:
-            model = json.load(data)
-        for k, v in model.items():
-            value = Struct(v)
-            setattr(world, k, value)
-        return world
-        """
-        
-
 
     def update_world(self, msg):
         # TODO: This
