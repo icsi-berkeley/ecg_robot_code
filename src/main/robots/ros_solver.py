@@ -71,6 +71,7 @@ class ROSProblemSolver(BasicRobotProblemSolver):
             if item not in self.world:
                 new = Struct(pos=pose.position, orientation=pose.orientation, name=item)
                 setattr(self.world, item, new)
+                print(self.world)
             else:
                 obj = getattr(self.world, item)
                 obj.update(dict(pos=pose.position, orientation=pose.orientation, name=item))
