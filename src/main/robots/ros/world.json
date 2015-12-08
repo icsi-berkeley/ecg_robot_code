@@ -2,7 +2,7 @@
 		  "color": "brown",
 		  "type": "beer",
 		  "weight": 1},
- "Darwin": {"size": 2,
+ "darwin": {"size": 2,
 			"color": "white",
 			"type": "robot",
 			"weight": 1}
