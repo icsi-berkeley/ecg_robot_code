@@ -67,13 +67,11 @@ class ROSProblemSolver(BasicRobotProblemSolver):
 
     def update_world(self, msg):
         # TODO: This
-        print(msg)
         for pos, item in enumerate(msg.name):
             pose = msg.pose[pos]
-            if item not in self.world:
+            if not hasattr(self.world, item):
                 new = Struct(pos=pose.position, orientation=pose.orientation, name=item)
                 setattr(self.world, item, new)
-                print(self.world)
             else:
                 obj = getattr(self.world, item)
                 obj.update(dict(pos=pose.position, orientation=pose.orientation, name=item))
