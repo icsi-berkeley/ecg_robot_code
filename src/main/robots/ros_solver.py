@@ -75,7 +75,7 @@ class ROSProblemSolver(BasicRobotProblemSolver):
                 obj = getattr(self.world, item)
                 obj.update(dict(pos=pose.position, orientation=pose.orientation, name=item))
                 #print(obj)
-                print(self.world)
+                setattr(self.world, item, obj)
 
 
 
