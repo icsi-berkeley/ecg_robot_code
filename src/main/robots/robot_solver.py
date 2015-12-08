@@ -333,7 +333,6 @@ class BasicRobotProblemSolver(CoreProblemSolver):
         return objs
 
     def get_described_objects(self, description, multiple=False):
-        print(self.world)
         if 'referent' in description:
             if hasattr(self.world, description['referent']):
                 return [getattr(self.world, description['referent'])]
