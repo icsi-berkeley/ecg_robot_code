@@ -67,6 +67,7 @@ class ROSProblemSolver(BasicRobotProblemSolver):
 
     def update_world(self, msg):
         # TODO: This
+        print(msg)
         for pos, item in enumerate(msg.name):
             pose = msg.pose[pos]
             if item not in self.world:
