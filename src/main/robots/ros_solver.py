@@ -62,6 +62,7 @@ class ROSProblemSolver(BasicRobotProblemSolver):
         # TODO
         self.model = rospy.Subscriber("/gazebo/model_states",ModelStates,self.update_world,queue_size=1)
         world = BasicRobotProblemSolver.build_world(self, external_file)
+        print(world)
         return world
 
     def update_world(self, msg):
