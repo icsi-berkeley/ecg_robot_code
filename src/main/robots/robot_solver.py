@@ -36,7 +36,9 @@ class BasicRobotProblemSolver(CoreProblemSolver):
         CoreProblemSolver.__init__(self, args)
         self.headings = dict(north=(0.0, 1.0, 0.0), south=(0.0, -1.0, 0.0), 
                     east=(1.0, 0.0, 0.0), west=(-1.0, 0.0, 0.0))
-        self.world = build('mock')
+        
+        self.world = self.build_world("mock/world.json") #build('mock')
+
         self._recent = None
         self._wh = None
         self._speed = 4
@@ -526,9 +528,9 @@ class BasicRobotProblemSolver(CoreProblemSolver):
         objs = self.get_described_objects(protagonist['objectDescriptor'])
         negated = predication['negated']
         for obj in objs:
-            if negated and not self.evaluate_obj_predication(obj, predication):
+            if negated and not self.evaluate_be(obj, predication):
                 copy.append(obj)
-            elif (not negated) and self.evaluate_obj_predication(obj, predication):
+            elif (not negated) and self.evaluate_be(obj, predication):
                 copy.append(obj)
         if len(copy) < 1:
             self.identification_failure("Failed to identify an object matching this description.")
@@ -545,14 +547,48 @@ class BasicRobotProblemSolver(CoreProblemSolver):
             self.respond_to_query(message=reply)
 
 
+    def query_push_move(self, parameters):
+        value = self.evaluate_push_move(parameters)
+        msg = "Yes." if value else "No."
+        return msg
+
+    # TODO: Clean this up. 
+    def evaluate_push_move(self,parameters):
+        # Check if you're asking whether a robot CAN push a box
+        if self.eventFeatures and "modality" in self.eventFeatures and self.eventFeatures['modality'] == "can":
+            negated = self.eventFeatures['negated']
+            info = self.get_push_info(parameters)
+            pusher = info['pusher']
+            distance = info['distance']['scaleDescriptor']['value']
+            # Get 
+            work = self.calculate_work(info['actedUpon'].weight, distance)
+            fuel = pusher.fuel
+            #msg = "Yes." if fuel >= work else "No, more fuel required."
+            #self.respond_to_query(msg)
+            return fuel >= work
+
+    # Assumes force is in Newtons, for W=F*D equation    
+    def calculate_work(self, force, distance):
+        return force*distance
+
+
+
     def evaluate_condition(self, parameters):
-        protagonist = self.get_described_object(parameters['protagonist']['objectDescriptor'])
+        action = parameters['actionary']
+        print(action)
+
+        #protagonist = self.get_described_object(parameters['protagonist']['objectDescriptor'])
+        dispatch = getattr(self, "evaluate_{}".format(action))
+        value = dispatch(action)
         if protagonist:
-            negated = parameters['state']['negated']
+            negated = False
+            if 'negated' in self.p_features:
+                negated = self.p_features['negated']
+            #negated = parameters['state']['negated']
             if negated:
-                return not self.evaluate_obj_predication(protagonist, parameters['state'])
+                return not self.evaluate_be(parameters)
             else:
-                return self.evaluate_obj_predication(protagonist, parameters['state'])
+                return self.evaluate_be(protagonist, parameters)
 
 
     def compare_features(self, feature, comparator, obj1, obj2):
@@ -560,7 +596,9 @@ class BasicRobotProblemSolver(CoreProblemSolver):
         f2 = getattr(obj2, feature)
         return comparator(f1, f2)
 
-    def evaluate_obj_predication(self, obj, predication):
+    def evaluate_be(self, parameters):
+        obj = self.get_described_object(parameters['protagonist']['objectDescriptor'])
+        predication = parameters['state']
         kind = predication['kind'] if 'kind' in predication else 'unmarked'
         for k, v in predication.items():
             if k == "size" or k == "weight":
@@ -601,9 +639,17 @@ class BasicRobotProblemSolver(CoreProblemSolver):
                 return item == objs[0]
 
 
+    def assertion_be(self, parameters):
+        protagonist = self.get_described_object(parameters['protagonist']['objectDescriptor'])
+        print(protagonist)
+        state = parameters['state']
+
+
     # Assertions not yet implemented for robots
     def solve_assertion(self, ntuple):
-        self.decoder.pprint_ntuple(ntuple)
+        parameters = ntuple['eventDescriptor']
+        self.route_event(parameters, "assertion")
+        #self.decoder.pprint_ntuple(ntuple)
 
     def solve_conditional_imperative(self, ntuple):
         parameters = ntuple['eventDescriptor']
