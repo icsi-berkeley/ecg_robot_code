@@ -492,14 +492,16 @@ class BasicRobotProblemSolver(CoreProblemSolver):
 
     def eval_wh(self, parameters, return_type):
         num, referentType = return_type.split("::")
-        protagonist = parameters['protagonist']
-        predication = parameters['state']
+        #protagonist = parameters['protagonist']
+        #predication = parameters['state']
         dispatch = getattr(self, "eval_{}".format(parameters['specificWh']))
-        dispatch(protagonist, predication, num)
+        dispatch(parameters, num)
 
-    def eval_what(self, protagonist, predication, num):
+    def eval_what(self, parameters, num):
         # What is the color of the box?
         # Protagonist=color, predication={identical: {box}}
+        protagonist = parameters['protagonist']
+        predication = parameters['state']
         if "type" not in protagonist['objectDescriptor']:
             obj = self.get_described_object(predication['identical']['objectDescriptor'])
             if obj:
@@ -516,21 +518,25 @@ class BasicRobotProblemSolver(CoreProblemSolver):
                 else:
                     self.identification_failure("Object {} does not have the property {}.".format(obj.name, prop))
 
-    def eval_where(self, protagonist, predication, num="singleton"):
+    def eval_where(self, parameters, num="singleton"):
+        predication = parameters['state']
+        #protagonist = parameters['protagonist']
         obj = self.get_described_object(predication['identical']['objectDescriptor'])
         if obj and len(obj) >= 1:
                 message = "The position of the {} is: x:{}, y:{}".format(self.assemble_string(predication['identical']['objectDescriptor']), obj.pos.x, obj.pos.y)
                 message = "The position of the {} is: ({}, {})".format(self.assemble_string(predication['identical']['objectDescriptor']), obj.pos.x, obj.pos.y)
                 self.respond_to_query(message)
 
-    def eval_which(self, protagonist, predication, num):
+    def eval_which(self, parameters, num):
         copy = []
-        objs = self.get_described_objects(protagonist['objectDescriptor'])
-        negated = predication['negated']
+        predication = parameters['state']
+        objs = self.get_described_objects(parameters['protagonist']['objectDescriptor'])
+        negated = parameters['state']['negated']
         for obj in objs:
-            if negated and not self.evaluate_be(obj, predication):
+            if negated and not self.evaluate_obj_predication(obj, predication):
                 copy.append(obj)
-            elif (not negated) and self.evaluate_be(obj, predication):
+            elif (not negated) and self.evaluate_obj_predication(obj, predication):
+            #elif (not negated) and self.evaluate_be(obj, predication):
                 copy.append(obj)
         if len(copy) < 1:
             self.identification_failure("Failed to identify an object matching this description.")
@@ -579,7 +585,7 @@ class BasicRobotProblemSolver(CoreProblemSolver):
 
         #protagonist = self.get_described_object(parameters['protagonist']['objectDescriptor'])
         dispatch = getattr(self, "evaluate_{}".format(action))
-        value = dispatch(action)
+        value = dispatch(parameters)
         if protagonist:
             negated = False
             if 'negated' in self.p_features:
@@ -596,9 +602,7 @@ class BasicRobotProblemSolver(CoreProblemSolver):
         f2 = getattr(obj2, feature)
         return comparator(f1, f2)
 
-    def evaluate_be(self, parameters):
-        obj = self.get_described_object(parameters['protagonist']['objectDescriptor'])
-        predication = parameters['state']
+    def evaluate_obj_predication(self, obj, predication):
         kind = predication['kind'] if 'kind' in predication else 'unmarked'
         for k, v in predication.items():
             if k == "size" or k == "weight":
@@ -619,6 +623,10 @@ class BasicRobotProblemSolver(CoreProblemSolver):
                 return False
         return True
 
+    def evaluate_be(self, parameters):
+        obj = self.get_described_object(parameters['protagonist']['objectDescriptor'])
+        predication = parameters['state']
+        return self.evaluate_obj_predication(obj, predication)
 
     def is_identical(self, item, objectD):
         # Checks if it's type identifiable ("is box1 a box"), then if it's elaborated ("is box1 a red box")
