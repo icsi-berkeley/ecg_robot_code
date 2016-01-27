@@ -160,8 +160,9 @@ class BasicRobotProblemSolver(CoreProblemSolver):
     def heading_info(self, protagonist, heading, distance):
         n = float(distance['value'])
         # units?
-        name = getattr(protagonist, 'name')
-        pos = self.getpos(name)
+        #name = getattr(protagonist, 'name')
+        #pos = self.getpos(name)
+        pos = protagonist.pos
         newpos = vector_add(pos, vector_mul(n, self.headings[heading]))
         return dict(x=newpos[0], y=newpos[1], z=newpos[2])
 
