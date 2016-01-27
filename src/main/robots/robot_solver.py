@@ -98,6 +98,7 @@ class BasicRobotProblemSolver(CoreProblemSolver):
 
 
     def command_move(self, parameters):
+        print(self.world)
         information = self.get_move_info(parameters)
         destination = information['destination']
         if destination:
