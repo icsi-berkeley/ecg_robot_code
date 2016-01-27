@@ -162,7 +162,8 @@ class BasicRobotProblemSolver(CoreProblemSolver):
         # units?
         #name = getattr(protagonist, 'name')
         #pos = self.getpos(name)
-        pos = protagonist.pos
+        pos = (protagonist.pos['x'], protagonist.pos['y'], protagonist.pos['z'])
+        print(pos)
         newpos = vector_add(pos, vector_mul(n, self.headings[heading]))
         return dict(x=newpos[0], y=newpos[1], z=newpos[2])
 
