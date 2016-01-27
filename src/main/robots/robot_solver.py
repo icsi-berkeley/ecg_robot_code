@@ -681,7 +681,7 @@ class BasicRobotProblemSolver(CoreProblemSolver):
     def evaluate_be(self, parameters):
         obj = self.get_described_object(parameters['protagonist']['objectDescriptor'])
         predication = parameters['state']
-        return self.evaluate_obj_predication(obj, predication)
+        return {'value': self.evaluate_obj_predication(obj, predication), 'reason': ''}
 
     def evaluate_be2(self, parameters):
         return self.evaluate_be(parameters)
