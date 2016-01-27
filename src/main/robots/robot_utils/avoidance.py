@@ -3,6 +3,18 @@ class TwoDimensionalAvoidanceSolver(object):
         self.world = []
         self.accuracy = 3.1
         self.accuracy_2 = 3.11
+
+    def is_between(a, b, c):
+        crossproduct = (c['y'] - a['y']) * (b['x']-a['x']) - (c['x'] - a['x']) * (b['y'] - a['y'])
+        if abs(crossproduct) > 0:
+            return False
+        dotproduct = (c['x']- a['x']) * (b['x'] - a['x']) + (c['y'] - a['y'])*(b['y'] - a['y'])
+        if dotproduct < 0 : return False
+
+        squaredlengthba = (b['x'] - a['x'])*(b['x'] - a['x']) + (b['y']- a['y'])*(b['y'] - a['y'])
+        if dotproduct > squaredlengthba: return False
+
+        return True
     
     def set_accuracy(self, accuracy=3.1):
         self.accuracy = accuracy
@@ -16,7 +28,7 @@ class TwoDimensionalAvoidanceSolver(object):
         for obj in self.world:
             if obj != trajector.name:
                 worldObj = getattr(self.world, obj)
-                pos = [worldObj.pos.x, worldObj.pos.y]
+                pos = [worldObj.pos['x'], worldObj.pos['y']]
                 a = self.is_close(pos, point)
                 if a:
                     #print('object avant',obj,'object position',pos,'point position',point)

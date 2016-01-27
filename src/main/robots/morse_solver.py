@@ -7,27 +7,31 @@ Author: seantrott <seantrott@icsi.berkeley.edu>
 # TODO
 from robot_solver import *
 from robot_utils.avoidance import TwoDimensionalAvoidanceSolver
+from morse.simulator import Robot
 
 class MorseRobotProblemSolver(BasicRobotProblemSolver, TwoDimensionalAvoidanceSolver):
     def __init__(self, args):
         BasicRobotProblemSolver.__init__(self, args)
         TwoDimensionalAvoidanceSolver.__init__(self)
-        self.world = build('morse')
+        self.world = self.build_world('morse/world.json')
         #self.build_world(False)
 
-    def build_world(self, update=False):
-        """ This automatically populates the world model with objects from the Morse scene,
-        which aren't necessarily in the builder.py file. UPDATE flag can be changed in __init__
-        to execute it or not. """
-        if update:
-            robot1 = self.world.robot1_instance
-            self.update_world(agent=robot1, discovered=[])
+
+    def build_world(self, external_file):
+        world = BasicRobotProblemSolver.build_world(self, external_file)
+        robot1_instance=Robot('robot1_instance')
+        robot2_instance=Robot('robot2_instance')
+        setattr(world, 'robot1_instance', robot1_instance)
+        setattr(world, 'robot2_instance', robot2_instance)
+        #print(world)
+        return world
+
 
     def move(self, mover, x, y, z=0.0, speed=2, tolerance=3.5, collide=False):
         if collide:
             new, interrupted = mover.move_np(x=x, y=y, z=z, speed=speed, tolerance=tolerance)
         else:
-            origin = [mover.pos.x, mover.pos.y]
+            origin = [mover.pos['x'], mover.pos['y']]
             destination = [x, y]  #z?
             line = self.compute_line(origin, destination, mover)
             smoothed = self.smooth_trajectory(line)
@@ -44,7 +48,7 @@ class MorseRobotProblemSolver(BasicRobotProblemSolver, TwoDimensionalAvoidanceSo
         # This will need to be changed dependent on worldview; 
         for obj in newworld:
             if hasattr(self.world, obj['name']):    
-                setattr(getattr(self.world, obj['name']), 'pos',Struct(x =obj['position'][0], y=obj['position'][1], z =obj['position'][2]) )
+                setattr(getattr(self.world, obj['name']), 'pos',dict(x =obj['position'][0], y=obj['position'][1], z =obj['position'][2]) )
             else:
                 #if obj['type'] in discovered:
                 if obj['name'] in discovered:
@@ -53,14 +57,15 @@ class MorseRobotProblemSolver(BasicRobotProblemSolver, TwoDimensionalAvoidanceSo
                                                               name=obj['name'],
                                                               type=obj['type'],
                                                               color=description['color'],
-                                                              size=description['size'])
+                                                              size=description['size'],
+                                                              weight=description['weight'])
                     msg = "I discovered a {} at position ({}, {}).".format(obj['type'], obj['position'][0], obj['position'][1])
                     self.respond_to_query(message=msg)
 
     def getpos(self, inst):
         instance =getattr(self.world, inst)
         p = instance.pos
-        return (p.x, p.y, p.z) 
+        return (p['x'], p['y'], p['z']) 
 
 
 

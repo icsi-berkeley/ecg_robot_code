@@ -27,6 +27,7 @@ from robots.builder import *
 import sys
 import random
 from math import sqrt
+from robots.robot_utils import *
 
 import os
 dir_name = os.path.dirname(os.path.realpath(__file__))
@@ -71,8 +72,8 @@ class BasicRobotProblemSolver(CoreProblemSolver):
         return world
 
     def euclidean_distance(self, p, q):
-        """ Gets euclidean distance between objects p and q. Takes in objects themselves. """
-        return sqrt(pow((p.pos.x-q.pos.x ),2) + pow((p.pos.y-q.pos.y ),2) ) 
+        """ Gets euclidean distance between two points. Takes in points, not objects. Expects points in dictionary format."""
+        return sqrt(pow((p['x']-q['x'] ),2) + pow((p['y']-q['y'] ),2) ) 
 
 
     def set_home(self, ntuple):
@@ -140,9 +141,9 @@ class BasicRobotProblemSolver(CoreProblemSolver):
             obj = self.get_described_object(goal['objectDescriptor'], multiple=True)
             #print(obj)
             if obj:
-                destination['x'] = obj.pos.x
-                destination['y'] = obj.pos.y
-                destination['z'] = obj.pos.z
+                destination['x'] = obj.pos['x']
+                destination['y'] = obj.pos['y']
+                destination['z'] = obj.pos['z']
             else:
                 return None
         elif "locationDescriptor" in goal:
@@ -153,7 +154,7 @@ class BasicRobotProblemSolver(CoreProblemSolver):
 
     def getpos(self, inst):
         p = getattr(getattr(self.world, inst), 'pos')
-        return (p.x, p.y, p.z) 
+        return (p['x'], p['y'], p['z']) 
 
     def heading_info(self, protagonist, heading, distance):
         n = float(distance['value'])
@@ -163,8 +164,7 @@ class BasicRobotProblemSolver(CoreProblemSolver):
         newpos = vector_add(pos, vector_mul(n, self.headings[heading]))
         return dict(x=newpos[0], y=newpos[1], z=newpos[2])
 
-    def query_move(self, parameters):
-        return None
+
 
     def command_push_move(self, parameters):
         #protagonist = self.get_described_object(parameters.causer['objectDescriptor'])
@@ -178,7 +178,7 @@ class BasicRobotProblemSolver(CoreProblemSolver):
 
     def push_to_location(self, actedUpon, goal, pusher):
         self.identification_failure(message=self._incapable)
-        og = actedUpon.pos.__dict__
+        og = actedUpon.pos
         #print("Original location: {}".format(og))
         #print("Goal location: {}".format(goal))
 
@@ -192,10 +192,10 @@ class BasicRobotProblemSolver(CoreProblemSolver):
     def get_push_direction_info(self, heading, obj, distance):
         addpos = vector_mul(-6, self.headings[heading])
         addpos2 = vector_mul(distance, self.headings[heading])
-        return {'x1': obj.pos.x + addpos[0], 
-                'y1': obj.pos.y + addpos[1],
-                'x2': obj.pos.x + addpos2[0],
-                'y2': obj.pos.y + addpos2[1]}
+        return {'x1': obj.pos['x'] + addpos[0], 
+                'y1': obj.pos['y'] + addpos[1],
+                'x2': obj.pos['x'] + addpos2[0],
+                'y2': obj.pos['y'] + addpos2[1]}
 
 
 
@@ -221,7 +221,7 @@ class BasicRobotProblemSolver(CoreProblemSolver):
 
 
     def distance(self, a, b):
-        return sqrt(pow((a.pos.x-b.pos.x ),2) + pow((a.pos.y-b.pos.y ),2) ) 
+        return sqrt(pow((a.pos['x']-b.pos['x'] ),2) + pow((a.pos['y']-b.pos['y'] ),2) ) 
 
     def get_near(self, candidates, obj):
         locations = []
@@ -485,10 +485,11 @@ class BasicRobotProblemSolver(CoreProblemSolver):
             return self.eval_wh(parameters, self.ntuple['return_type'])
         else:
             msg = "Yes." if self.evaluate_condition(parameters) else "No."
-            self.respond_to_query(msg)
+            return msg
+            #self.respond_to_query(msg)
 
     def query_be2(self, parameters):
-        self.query_be(parameters)
+        return self.query_be(parameters)
 
     def eval_wh(self, parameters, return_type):
         num, referentType = return_type.split("::")
@@ -523,8 +524,8 @@ class BasicRobotProblemSolver(CoreProblemSolver):
         #protagonist = parameters['protagonist']
         obj = self.get_described_object(predication['identical']['objectDescriptor'])
         if obj and len(obj) >= 1:
-                message = "The position of the {} is: x:{}, y:{}".format(self.assemble_string(predication['identical']['objectDescriptor']), obj.pos.x, obj.pos.y)
-                message = "The position of the {} is: ({}, {})".format(self.assemble_string(predication['identical']['objectDescriptor']), obj.pos.x, obj.pos.y)
+                message = "The position of the {} is: x:{}, y:{}".format(self.assemble_string(predication['identical']['objectDescriptor']), obj.pos['x'], obj.pos['y'])
+                message = "The position of the {} is: ({}, {})".format(self.assemble_string(predication['identical']['objectDescriptor']), obj.pos['x'], obj.pos['y'])
                 self.respond_to_query(message)
 
     def eval_which(self, parameters, num):
@@ -553,25 +554,78 @@ class BasicRobotProblemSolver(CoreProblemSolver):
             self.respond_to_query(message=reply)
 
 
+    def query_move(self, parameters):
+        answer = self.evaluate_move(parameters)
+        value, reason = answer['value'], answer['reason']
+        msg = "Yes." if value else "No, {}.".format(reason)
+        return msg
+
     def query_push_move(self, parameters):
-        value = self.evaluate_push_move(parameters)
-        msg = "Yes." if value else "No."
+        answer = self.evaluate_push_move(parameters)
+        value, reason = answer['value'], answer['reason']
+        msg = "Yes." if value else "No, {}.".format(reason)
         return msg
 
     # TODO: Clean this up. 
     def evaluate_push_move(self,parameters):
+        info = self.get_push_info(parameters)
         # Check if you're asking whether a robot CAN push a box
         if self.eventFeatures and "modality" in self.eventFeatures and self.eventFeatures['modality'] == "can":
             negated = self.eventFeatures['negated']
-            info = self.get_push_info(parameters)
             pusher = info['pusher']
             distance = info['distance']['scaleDescriptor']['value']
-            # Get 
-            work = self.calculate_work(info['actedUpon'].weight, distance)
-            fuel = pusher.fuel
-            #msg = "Yes." if fuel >= work else "No, more fuel required."
-            #self.respond_to_query(msg)
-            return fuel >= work
+            work = self.calculate_work(info['actedUpon'].weight + pusher.weight, distance)
+            if pusher.fuel < work: # Check for fuel
+                if negated:
+                    pass
+                else:
+                    return {'value': pusher.fuel >= work, 'reason': "not enough fuel"}
+            if info['goal']:
+                pass
+            if info['heading']: # Should have at least default heading
+                more_info = self.get_push_direction_info(info['heading'], info['actedUpon'], distance)
+                loc = info['actedUpon'].pos
+                x2, y2 = more_info['x2'], more_info['y2']
+                for obj in self.world:
+                    stripped = obj.replace("_instance", "")
+                    actual = self.world[obj]
+                    if self.is_between({'x': x2, 'y': y2}, loc, actual.pos) and info['actedUpon']['name']!= obj:
+                        return {'value': False, 'reason': "{} is in the way".format(stripped)}
+            return {'value': True, 'reason': "it is possible"}
+        else:
+            # "did Robot1 push Box2?", etc.
+            print(info)
+
+
+    def is_between(self, a, b, c):
+        crossproduct = (c['y'] - a['y']) * (b['x']-a['x']) - (c['x'] - a['x']) * (b['y'] - a['y'])
+        if abs(crossproduct) > 0:
+            return False
+        dotproduct = (c['x']- a['x']) * (b['x'] - a['x']) + (c['y'] - a['y'])*(b['y'] - a['y'])
+        if dotproduct < 0 : return False
+        squaredlengthba = (b['x'] - a['x'])*(b['x'] - a['x']) + (b['y']- a['y'])*(b['y'] - a['y'])
+        if dotproduct > squaredlengthba: return False
+        return True
+
+    def evaluate_move(self, parameters):
+        info = self.get_move_info(parameters)
+        if self.eventFeatures and "modality" in self.eventFeatures and self.eventFeatures['modality'] == "can":
+            negated = self.eventFeatures['negated']
+            mover = info['protagonist']
+            destination = info['destination']
+            distance = self.euclidean_distance(mover.pos, destination)
+            work = self.calculate_work(mover.weight, distance)
+            if mover.fuel < work:
+                if negated:
+                    pass
+                else:
+                    return {'value': False, 'reason': "not enough fuel"}
+            for obj in self.world:
+                stripped = obj.replace("_instance", "")
+                actual = self.world[obj]
+                #if actual.pos == destination:
+                #    return {'value': False, 'reason': "{} is in the way".format(stripped)}
+            return True
 
     # Assumes force is in Newtons, for W=F*D equation    
     def calculate_work(self, force, distance):
@@ -580,21 +634,22 @@ class BasicRobotProblemSolver(CoreProblemSolver):
 
 
     def evaluate_condition(self, parameters):
+        #parameters = event['eventProcess']
         action = parameters['actionary']
-        print(action)
 
         #protagonist = self.get_described_object(parameters['protagonist']['objectDescriptor'])
         dispatch = getattr(self, "evaluate_{}".format(action))
-        value = dispatch(parameters)
-        if protagonist:
-            negated = False
-            if 'negated' in self.p_features:
-                negated = self.p_features['negated']
-            #negated = parameters['state']['negated']
-            if negated:
-                return not self.evaluate_be(parameters)
-            else:
-                return self.evaluate_be(protagonist, parameters)
+        answer = dispatch(parameters)
+        value, reason = answer['value'], answer['reason']
+        #if protagonist:
+        negated = False
+        if self.p_features and 'negated' in self.p_features:
+            negated = self.p_features['negated']
+        #negated = parameters['state']['negated']
+        if negated:
+            return not value #self.evaluate_be(parameters)
+        else:
+            return value #self.evaluate_be(parameters)
 
 
     def compare_features(self, feature, comparator, obj1, obj2):
@@ -628,6 +683,9 @@ class BasicRobotProblemSolver(CoreProblemSolver):
         predication = parameters['state']
         return self.evaluate_obj_predication(obj, predication)
 
+    def evaluate_be2(self, parameters):
+        return self.evaluate_be(parameters)
+
     def is_identical(self, item, objectD):
         # Checks if it's type identifiable ("is box1 a box"), then if it's elaborated ("is box1 a red box")
         # If uniquely identifiable, just matches referred objects
@@ -649,8 +707,13 @@ class BasicRobotProblemSolver(CoreProblemSolver):
 
     def assertion_be(self, parameters):
         protagonist = self.get_described_object(parameters['protagonist']['objectDescriptor'])
-        print(protagonist)
         state = parameters['state']
+        negated = state['negated']
+        if not negated:
+            if 'amount' in state:
+                prop, value = state['amount']['property'], state['amount']['value']
+                setattr(protagonist, prop, value)
+            # TO DO; color, size, name?
 
 
     # Assertions not yet implemented for robots
@@ -661,10 +724,16 @@ class BasicRobotProblemSolver(CoreProblemSolver):
 
     def solve_conditional_imperative(self, ntuple):
         parameters = ntuple['eventDescriptor']
-        condition = parameters['condition']['eventProcess']
+        condition = parameters['condition']
+        features = condition['e_features']
+        if features:
+            # Set eventFeatures
+            self.eventFeatures = features['eventFeatures']
         core = parameters['core']
-        if self.evaluate_condition(condition):
+        if self.evaluate_condition(condition['eventProcess']):
             self.route_event(core, "command")
+        else:
+            return "Condition not satisfied."
 
     # Conditional declaratives not yet implemented for robots
     def solve_conditional_declarative(self, ntuple):
@@ -673,9 +742,9 @@ class BasicRobotProblemSolver(CoreProblemSolver):
 
     def move(self, mover, x, y, z=1.0, speed=2, tolerance=3, collide=False):
         print("{} is moving to ({}, {}, {}).".format(mover.name, x, y, z))
-        mover.pos.x = x
-        mover.pos.y = y
-        mover.pos.z = z
+        mover.pos['x'] = x
+        mover.pos['y'] = y
+        mover.pos['z'] = z
 
 if __name__ == "__main__":
     solver = BasicRobotProblemSolver(sys.argv[1:])
