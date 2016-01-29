@@ -88,7 +88,6 @@ class BasicRobotProblemSolver(CoreProblemSolver):
         self.route_action(parameters['process2'], predicate)
 
     def solve_command(self, ntuple):
-        print(self.world)
         self.set_home(ntuple)
         parameters = ntuple['eventDescriptor']
         self.route_event(parameters, "command")
@@ -174,10 +173,15 @@ class BasicRobotProblemSolver(CoreProblemSolver):
         info = self.get_push_info(parameters)
         if info['goal']:
             # Create self.push_to_location
+            answer = self.evaluate_push_move(parameters)
             self.push_to_location(info['actedUpon'], info['goal'], info['pusher'])
             
         elif info['heading']:
-            self.push_direction(info['heading'], info['actedUpon'], info['distance'], info['pusher'])
+            answer = self.evaluate_can_push_move(parameters)
+            if answer['value']:
+                self.push_direction(info['heading'], info['actedUpon'], info['distance'], info['pusher'])
+            else:
+                return answer['reason']
 
     def push_to_location(self, actedUpon, goal, pusher):
         self.identification_failure(message=self._incapable)
@@ -569,32 +573,37 @@ class BasicRobotProblemSolver(CoreProblemSolver):
         msg = "Yes." if value else "No, {}.".format(reason)
         return msg
 
+    def evaluate_can_push_move(self, parameters, negated=False):
+        info = self.get_push_info(parameters)
+        #negated = self.eventFeatures['negated']
+        pusher = info['pusher']
+        distance = info['distance']['scaleDescriptor']['value']
+        work = self.calculate_work(info['actedUpon'].weight + pusher.weight, distance)
+        if pusher.fuel < work: # Check for fuel
+            if negated:
+                pass
+            else:
+                return {'value': pusher.fuel >= work, 'reason': "not enough fuel"}
+        if info['goal']:
+            pass
+        if info['heading']: # Should have at least default heading
+            more_info = self.get_push_direction_info(info['heading'], info['actedUpon'], distance)
+            loc = info['actedUpon'].pos
+            x2, y2 = more_info['x2'], more_info['y2']
+            for obj in self.world:
+                stripped = obj.replace("_instance", "")
+                actual = self.world[obj]
+                if self.is_between({'x': x2, 'y': y2}, loc, actual.pos) and info['actedUpon']['name']!= obj:
+                    return {'value': False, 'reason': "{} is in the way".format(stripped)}
+        return {'value': True, 'reason': "it is possible"}
+
     # TODO: Clean this up. 
     def evaluate_push_move(self,parameters):
         info = self.get_push_info(parameters)
         # Check if you're asking whether a robot CAN push a box
         if self.eventFeatures and "modality" in self.eventFeatures and self.eventFeatures['modality'] == "can":
             negated = self.eventFeatures['negated']
-            pusher = info['pusher']
-            distance = info['distance']['scaleDescriptor']['value']
-            work = self.calculate_work(info['actedUpon'].weight + pusher.weight, distance)
-            if pusher.fuel < work: # Check for fuel
-                if negated:
-                    pass
-                else:
-                    return {'value': pusher.fuel >= work, 'reason': "not enough fuel"}
-            if info['goal']:
-                pass
-            if info['heading']: # Should have at least default heading
-                more_info = self.get_push_direction_info(info['heading'], info['actedUpon'], distance)
-                loc = info['actedUpon'].pos
-                x2, y2 = more_info['x2'], more_info['y2']
-                for obj in self.world:
-                    stripped = obj.replace("_instance", "")
-                    actual = self.world[obj]
-                    if self.is_between({'x': x2, 'y': y2}, loc, actual.pos) and info['actedUpon']['name']!= obj:
-                        return {'value': False, 'reason': "{} is in the way".format(stripped)}
-            return {'value': True, 'reason': "it is possible"}
+            return self.evaluate_can_push_move(parameters, negated)
         else:
             # "did Robot1 push Box2?", etc.
             print(info)
