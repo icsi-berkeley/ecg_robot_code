@@ -119,8 +119,8 @@ class BasicRobotProblemSolver(CoreProblemSolver):
 
         if spg['goal']:
             information['destination'] =self.goal_info(spg['goal'], information['protagonist'])
-        elif parameters['heading']:
-            information['destination'] = self.heading_info(information['protagonist'], parameters['heading'], parameters['distance']['scaleDescriptor'])
+        elif parameters['heading']['headingDescriptor']:
+            information['destination'] = self.heading_info(information['protagonist'], parameters['heading']['headingDescriptor'], parameters['distance']['scaleDescriptor'])
         return information
 
 
@@ -162,7 +162,6 @@ class BasicRobotProblemSolver(CoreProblemSolver):
         #name = getattr(protagonist, 'name')
         #pos = self.getpos(name)
         pos = (protagonist.pos['x'], protagonist.pos['y'], protagonist.pos['z'])
-        print(pos)
         newpos = vector_add(pos, vector_mul(n, self.headings[heading]))
         return dict(x=newpos[0], y=newpos[1], z=newpos[2])
 
@@ -179,7 +178,7 @@ class BasicRobotProblemSolver(CoreProblemSolver):
         elif info['heading']:
             answer = self.evaluate_can_push_move(parameters)
             if answer['value']:
-                self.push_direction(info['heading'], info['actedUpon'], info['distance'], info['pusher'])
+                self.push_direction(info['heading']['headingDescriptor'], info['actedUpon'], info['distance'], info['pusher'])
             else:
                 return answer['reason']
 
@@ -207,7 +206,7 @@ class BasicRobotProblemSolver(CoreProblemSolver):
 
 
     def get_push_info(self, parameters):
-        heading = parameters['affectedProcess']['heading']
+        heading = parameters['affectedProcess']['heading']['headingDescriptor']
         pusher = self.get_described_object(parameters['protagonist']['objectDescriptor'])
         goal = parameters['affectedProcess']['spg']['spgDescriptor']['goal']
         distance = parameters['affectedProcess']['distance']
@@ -220,7 +219,7 @@ class BasicRobotProblemSolver(CoreProblemSolver):
         info['actedUpon'] = obj
         if goal:
             info['goal'] = self.goal_info(goal)
-        info['heading'] = parameters['affectedProcess']['heading'] #self.heading_info(obj, parameters.affectedProcess['heading'], distance)
+        info['heading']['headingDescriptor'] = parameters['affectedProcess']['heading']['headingDescriptor'] #self.heading_info(obj, parameters.affectedProcess['heading'], distance)
         info['distance'] = distance
         info['pusher'] = pusher
         return info
@@ -587,7 +586,7 @@ class BasicRobotProblemSolver(CoreProblemSolver):
         if info['goal']:
             pass
         if info['heading']: # Should have at least default heading
-            more_info = self.get_push_direction_info(info['heading'], info['actedUpon'], distance)
+            more_info = self.get_push_direction_info(info['heading']['headingDescriptor'], info['actedUpon'], distance)
             loc = info['actedUpon'].pos
             x2, y2 = more_info['x2'], more_info['y2']
             for obj in self.world:
@@ -637,7 +636,7 @@ class BasicRobotProblemSolver(CoreProblemSolver):
                 actual = self.world[obj]
                 #if actual.pos == destination:
                 #    return {'value': False, 'reason': "{} is in the way".format(stripped)}
-            return True
+            return {'value': True, 'reason': "it can"}
 
     # Assumes force is in Newtons, for W=F*D equation    
     def calculate_work(self, force, distance):
