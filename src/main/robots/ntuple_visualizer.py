@@ -17,7 +17,9 @@ rs = RobotSpecializer(analyzer)
 
 while True:
     text = input("> ")
-    if text == "q":
+    if not text:
+        pass
+    elif text == "q":
         quit()
     elif text == "d":
         rs.debug_mode = True
@@ -27,7 +29,7 @@ while True:
             for fs in semspecs:
                 try:
                     ntuple = rs.specialize(fs)
-                    decoder.pprint_ntuple(ntuple)
+                    #decoder.pprint_ntuple(ntuple)
                     break
                 except Exception as e:
                     traceback.print_exc()

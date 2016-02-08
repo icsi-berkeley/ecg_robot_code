@@ -170,6 +170,7 @@ class BasicRobotProblemSolver(CoreProblemSolver):
     def command_push_move(self, parameters):
         #protagonist = self.get_described_object(parameters.causer['objectDescriptor'])
         info = self.get_push_info(parameters)
+        print(info['actedUpon'])
         if info['goal']:
             # Create self.push_to_location
             answer = self.evaluate_push_move(parameters)
@@ -211,7 +212,7 @@ class BasicRobotProblemSolver(CoreProblemSolver):
         goal = parameters['affectedProcess']['spg']['spgDescriptor']['goal']
         distance = parameters['affectedProcess']['distance']
         info = dict(goal=None,
-                    heading=None,
+                    heading=dict(headingDescriptor=None),
                     actedUpon=None,
                     distance=None,
                     pusher=None)
@@ -743,6 +744,8 @@ class BasicRobotProblemSolver(CoreProblemSolver):
         core = parameters['core']
         if self.evaluate_condition(condition['eventProcess']):
             self.route_event(core, "command")
+        elif parameters['else']['eventProcess']:
+            self.route_event(parameters['else'], "command")
         else:
             return "Condition not satisfied."
 
