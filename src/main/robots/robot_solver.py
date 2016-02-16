@@ -170,7 +170,6 @@ class BasicRobotProblemSolver(CoreProblemSolver):
     def command_push_move(self, parameters):
         #protagonist = self.get_described_object(parameters.causer['objectDescriptor'])
         info = self.get_push_info(parameters)
-        print(info['actedUpon'])
         if info['goal']:
             # Create self.push_to_location
             answer = self.evaluate_push_move(parameters)
