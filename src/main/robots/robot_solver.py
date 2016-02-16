@@ -172,7 +172,7 @@ class BasicRobotProblemSolver(CoreProblemSolver):
         info = self.get_push_info(parameters)
         if info['goal']:
             # Create self.push_to_location
-            answer = self.evaluate_push_move(parameters)
+            answer = self.evaluate_can_push_move(parameters)
             self.push_to_location(info['actedUpon'], info['goal'], info['pusher'])
             
         elif info['heading']:
@@ -592,7 +592,7 @@ class BasicRobotProblemSolver(CoreProblemSolver):
             for obj in self.world:
                 stripped = obj.replace("_instance", "")
                 actual = self.world[obj]
-                if self.is_between({'x': x2, 'y': y2}, loc, actual.pos) and info['actedUpon']['name']!= obj:
+                if self.is_between({'x': x2, 'y': y2}, loc, actual.pos) and info['actedUpon']['name']!= obj and pusher['name'] != obj:
                     return {'value': False, 'reason': "{} is in the way".format(stripped)}
         return {'value': True, 'reason': "it is possible"}
 
@@ -684,6 +684,9 @@ class BasicRobotProblemSolver(CoreProblemSolver):
                 if v =='near':
                     if not self.is_near(obj, self.get_described_object(predication['objectDescriptor'])):
                         return False
+                if v == "in":
+                    # TODO: Implement this...
+                    return False
             # TODO: "Object does not have property k". Send message?
             elif hasattr(obj, k) and getattr(obj, k) != v:
                 return False
