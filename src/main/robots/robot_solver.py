@@ -83,7 +83,7 @@ class BasicRobotProblemSolver(CoreProblemSolver):
         agent = self.get_described_object(parameters['causalAgent']['objectDescriptor'])
         action = parameters['causalProcess']['actionary']
         parameters['actionary'], parameters['complexKind'] = action, None
-        self.route_action(parameters, predicate)
+        return self.route_action(parameters, predicate)
 
 
     def set_home(self, ntuple):
