@@ -76,6 +76,16 @@ class BasicRobotProblemSolver(CoreProblemSolver):
         return sqrt(pow((p['x']-q['x'] ),2) + pow((p['y']-q['y'] ),2) ) 
 
 
+    def solve_causal(self, parameters, predicate):
+        """ This needs work. It should actually do more reasoning, to determine what precisely it's being asked to do. 
+        Currently, it just repackages the n-tuple and reroutes it.
+        """
+        agent = self.get_described_object(parameters['causalAgent']['objectDescriptor'])
+        action = parameters['causalProcess']['actionary']
+        parameters['actionary'], parameters['complexKind'] = action, None
+        self.route_action(parameters, predicate)
+
+
     def set_home(self, ntuple):
         parameters = ntuple['eventDescriptor']['eventProcess']
         prot = parameters['protagonist']
@@ -215,7 +225,7 @@ class BasicRobotProblemSolver(CoreProblemSolver):
                     actedUpon=None,
                     distance=None,
                     pusher=None)
-        obj = self.get_described_object(parameters['causalProcess']['actedUpon']['objectDescriptor'])
+        obj = self.get_described_object(parameters['affectedProcess']['protagonist']['objectDescriptor'])
         info['actedUpon'] = obj
         if goal:
             info['goal'] = self.goal_info(goal)
