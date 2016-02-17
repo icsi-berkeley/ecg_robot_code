@@ -107,6 +107,76 @@ class BasicRobotProblemSolver(CoreProblemSolver):
         self.route_event(param, "query")
 
 
+    def evaluate_can_bring(self, parameters):
+        """ TODO: determine whether robot can pick up object."""
+        info = self.get_bring_info(parameters)
+
+        return {'value': True, 'reason': 'it is possible'}
+
+    def command_pickup(self, parameters):
+        info = self.get_pickup_info(parameters)
+        answer = self.evaluate_can_grasp(info)
+        if answer['value']:
+            self.move(info['protagonist'], info['theme'].pos['x'], info['theme'].pos['x'])
+            self.grasp(info['protagonist'], info['theme'].name)
+        else:
+            return answer['reason']
+
+    def evaluate_can_grasp(self, info):
+        """ Check amount of work required to pick up object. Check if object is graspable (TODO). """
+        #info = self.get_pickup_info(parameters)
+        work = self.calculate_lift_work(info['actedUpon'].weight * 9.8, 1)
+        # Also check if object is 'graspable'
+        if work > info['protagonist'].fuel:
+            return {'value': False, 'reason': 'not enough fuel'}
+        else:
+            return {'value': True, 'reason': 'it is possible'}
+
+
+    def get_pickup_info(self, parameters):
+        actedUpon = self.get_described_object(parameters['manipulated_entity']['objectDescriptor'])
+        protagonist = self.get_described_object(parameters['protagonist']['objectDescriptor'])
+        return dict(actedUpon=actedUpon, protagonist=protagonist)
+
+    def command_bring(self, parameters):
+        """ This will move to the object location, grasp the object, and then move to another location. """
+        information = self.get_bring_info(parameters)
+        answer = self.evaluate_can_push_move(parameters)
+        actor = information['protagonist']
+        answer = self.evaluate_can_grasp(information)
+        if answer['value']:
+            if information['goal']:
+                final_destination = information['goal']
+            elif information['heading']:
+                temp = self.get_push_direction_info(information['heading']['headingDescriptor'], information['actedUpon'], information['distance']['scaleDescriptor']['value'])
+                final_destination = dict(x=temp['x2'], y=temp['y2'])
+            self.move(actor, information['actedUpon'].pos['x'], information['actedUpon'].pos['y'])
+            self.grasp(actor, information['actedUpon']['name'])
+            self.move(actor, final_destination['x'], final_destination['y'])
+        else:
+            return answer['reason']
+
+    def get_bring_info(self, parameters):
+        """ Same body as get_push_info, since they use similar structures. """
+        heading = parameters['affectedProcess']['heading']['headingDescriptor']
+        protagonist = self.get_described_object(parameters['protagonist']['objectDescriptor'])
+        goal = parameters['affectedProcess']['spg']['spgDescriptor']['goal']
+        distance = parameters['affectedProcess']['distance']
+        info = dict(goal=None,
+                    heading=dict(headingDescriptor=None),
+                    actedUpon=None,
+                    distance=None,
+                    protagonist=None)
+        obj = self.get_described_object(parameters['affectedProcess']['protagonist']['objectDescriptor'])
+        info['actedUpon'] = obj
+        if goal:
+            info['goal'] = self.goal_info(goal)
+        info['heading']['headingDescriptor'] = parameters['affectedProcess']['heading']['headingDescriptor'] #self.heading_info(obj, parameters.affectedProcess['heading'], distance)
+        info['distance'] = distance
+        info['protagonist'] = protagonist
+        return info
+
+
     def command_move(self, parameters):
         information = self.get_move_info(parameters)
         destination = information['destination']
@@ -183,26 +253,26 @@ class BasicRobotProblemSolver(CoreProblemSolver):
         if info['goal']:
             # Create self.push_to_location
             answer = self.evaluate_can_push_move(parameters)
-            self.push_to_location(info['actedUpon'], info['goal'], info['pusher'])
+            self.push_to_location(info['actedUpon'], info['goal'], info['protagonist'])
             
         elif info['heading']:
             answer = self.evaluate_can_push_move(parameters)
             if answer['value']:
-                self.push_direction(info['heading']['headingDescriptor'], info['actedUpon'], info['distance'], info['pusher'])
+                self.push_direction(info['heading']['headingDescriptor'], info['actedUpon'], info['distance'], info['protagonist'])
             else:
                 return answer['reason']
 
-    def push_to_location(self, actedUpon, goal, pusher):
+    def push_to_location(self, actedUpon, goal, protagonist):
         self.identification_failure(message=self._incapable)
         og = actedUpon.pos
         #print("Original location: {}".format(og))
         #print("Goal location: {}".format(goal))
 
 
-    def push_direction(self, heading, actedUpon, distance, pusher):
+    def push_direction(self, heading, actedUpon, distance, protagonist):
         info = self.get_push_direction_info(heading, actedUpon, distance['scaleDescriptor']['value'])
-        self.move(pusher, info['x1'], info['y1'], tolerance=3)
-        self.move(pusher, info['x2'], info['y2'], tolerance=3, collide=True)
+        self.move(protagonist, info['x1'], info['y1'], tolerance=3)
+        self.move(protagonist, info['x2'], info['y2'], tolerance=3, collide=True)
 
 
     def get_push_direction_info(self, heading, obj, distance):
@@ -217,21 +287,21 @@ class BasicRobotProblemSolver(CoreProblemSolver):
 
     def get_push_info(self, parameters):
         heading = parameters['affectedProcess']['heading']['headingDescriptor']
-        pusher = self.get_described_object(parameters['protagonist']['objectDescriptor'])
+        protagonist = self.get_described_object(parameters['protagonist']['objectDescriptor'])
         goal = parameters['affectedProcess']['spg']['spgDescriptor']['goal']
         distance = parameters['affectedProcess']['distance']
         info = dict(goal=None,
                     heading=dict(headingDescriptor=None),
                     actedUpon=None,
                     distance=None,
-                    pusher=None)
+                    protagonist=None)
         obj = self.get_described_object(parameters['affectedProcess']['protagonist']['objectDescriptor'])
         info['actedUpon'] = obj
         if goal:
             info['goal'] = self.goal_info(goal)
         info['heading']['headingDescriptor'] = parameters['affectedProcess']['heading']['headingDescriptor'] #self.heading_info(obj, parameters.affectedProcess['heading'], distance)
         info['distance'] = distance
-        info['pusher'] = pusher
+        info['protagonist'] = protagonist
         return info
 
 
@@ -585,14 +655,14 @@ class BasicRobotProblemSolver(CoreProblemSolver):
     def evaluate_can_push_move(self, parameters, negated=False):
         info = self.get_push_info(parameters)
         #negated = self.eventFeatures['negated']
-        pusher = info['pusher']
+        protagonist = info['protagonist']
         distance = info['distance']['scaleDescriptor']['value']
-        work = self.calculate_work(info['actedUpon'].weight + pusher.weight, distance)
-        if pusher.fuel < work: # Check for fuel
+        work = self.calculate_work(info['actedUpon'].weight + protagonist.weight, distance)
+        if protagonist.fuel < work: # Check for fuel
             if negated:
                 pass
             else:
-                return {'value': pusher.fuel >= work, 'reason': "not enough fuel"}
+                return {'value': protagonist.fuel >= work, 'reason': "not enough fuel"}
         if info['goal']:
             pass
         if info['heading']: # Should have at least default heading
@@ -602,7 +672,7 @@ class BasicRobotProblemSolver(CoreProblemSolver):
             for obj in self.world:
                 stripped = obj.replace("_instance", "")
                 actual = self.world[obj]
-                if self.is_between({'x': x2, 'y': y2}, loc, actual.pos) and info['actedUpon']['name']!= obj and pusher['name'] != obj:
+                if self.is_between({'x': x2, 'y': y2}, loc, actual.pos) and info['actedUpon']['name']!= obj and protagonist['name'] != obj:
                     return {'value': False, 'reason': "{} is in the way".format(stripped)}
         return {'value': True, 'reason': "it is possible"}
 
@@ -651,6 +721,9 @@ class BasicRobotProblemSolver(CoreProblemSolver):
     # Assumes force is in Newtons, for W=F*D equation    
     def calculate_work(self, force, distance):
         return force*distance
+
+    def calculate_lift_work(self, force, displacement):
+        return force * displacement
 
 
 
@@ -771,6 +844,9 @@ class BasicRobotProblemSolver(CoreProblemSolver):
         mover.pos['x'] = x
         mover.pos['y'] = y
         mover.pos['z'] = z
+
+    def grasp(self, grasper, object_name):
+        print("{} is grasping {}.".format(grasper.name, object_name))
 
 if __name__ == "__main__":
     solver = BasicRobotProblemSolver(sys.argv[1:])
