@@ -115,16 +115,40 @@ class BasicRobotProblemSolver(CoreProblemSolver):
 
     def command_pickup(self, parameters):
         info = self.get_pickup_info(parameters)
+        if not info['actedUpon']:
+            return None
         answer = self.evaluate_can_grasp(info)
         if answer['value']:
-            self.move(info['protagonist'], info['theme'].pos['x'], info['theme'].pos['x'])
-            self.grasp(info['protagonist'], info['theme'].name)
+            self.move(info['protagonist'], info['actedUpon'].pos['x'], info['actedUpon'].pos['x'])
+            self.grasp(info['protagonist'], info['actedUpon'].name)
         else:
             return answer['reason']
+
+    def command_grasp(self, parameters):
+        return self.command_pickup(parameters)
+
+    def query_pickup(self, parameters):
+        #info = self.get_pickup_info(parameters)
+        answer = self.evaluate_pickup(parameters)
+        value, reason = answer['value'], answer['reason']
+        msg = "Yes." if value else "No, {}".format(reason)
+        return msg
+
+
+
+    def evaluate_pickup(self, parameters): 
+        if self.eventFeatures and "modality" in self.eventFeatures and self.eventFeatures['modality'] == "can":
+            negated = self.eventFeatures['negated']
+            # TODO: what to do about negated, here?
+            info = self.get_pickup_info(parameters)
+            return self.evaluate_can_grasp(info)
+
 
     def evaluate_can_grasp(self, info):
         """ Check amount of work required to pick up object. Check if object is graspable (TODO). """
         #info = self.get_pickup_info(parameters)
+        if not info['actedUpon']:
+            return {'value': False, 'reason': "I don't know what you want me to pick up."}
         work = self.calculate_lift_work(info['actedUpon'].weight * 9.8, 1)
         # Also check if object is 'graspable'
         if work > info['protagonist'].fuel:
@@ -143,8 +167,10 @@ class BasicRobotProblemSolver(CoreProblemSolver):
         information = self.get_bring_info(parameters)
         answer = self.evaluate_can_push_move(parameters)
         actor = information['protagonist']
+        if not information['actedUpon']:
+            return None
         answer = self.evaluate_can_grasp(information)
-        if answer['value']:
+        if answer and answer['value']:
             if information['goal']:
                 final_destination = information['goal']
             elif information['heading']:
@@ -184,7 +210,9 @@ class BasicRobotProblemSolver(CoreProblemSolver):
             self.move(information['protagonist'], destination['x'], destination['y'], destination['z'], 
                 information['speed'], tolerance=3.5)
         else:
-            print("Command_move, no destination.")
+            pass
+            # TO DO: What to do here?
+            #print("Command_move, no destination.")
 
     def get_move_info(self, parameters):
         information = dict(destination=None,
@@ -250,6 +278,8 @@ class BasicRobotProblemSolver(CoreProblemSolver):
     def command_push_move(self, parameters):
         #protagonist = self.get_described_object(parameters.causer['objectDescriptor'])
         info = self.get_push_info(parameters)
+        if not info['actedUpon']:
+            return None
         if info['goal']:
             # Create self.push_to_location
             answer = self.evaluate_can_push_move(parameters)
@@ -464,19 +494,40 @@ class BasicRobotProblemSolver(CoreProblemSolver):
                 if description['givenness'] == 'typeIdentifiable' or description['givenness'] == "distinct":
                     if self._recent in objs:
                         objs.remove(self._recent)
+                    # TODO: do something better than just random choice, e.g. "is a box near the blue box" (really means ANY)
                     return random.choice(objs)
             elif self._wh:
                 message = "More than one object matches the description of {}.".format(self.assemble_string(description))
                 self.identification_failure(message)
                 return None
+            print(objs)
             message = "Which '{}'?".format(self.assemble_string(description))
             # TODO: Tag n-tuple
-            self.request_clarification(self.ntuple, message)
+            tagged = self.tag_ntuple(dict(self.ntuple), description)
+            #self.request_clarification(self.ntuple, message)
+            self.request_clarification(tagged, message)
             return None
         else:
             message = "Sorry, I don't know what the {} is.".format(self.assemble_string(description))
             self.identification_failure(message)
             return None
+
+    def tag_ntuple(self, ntuple, description):
+        """ Tags all ntuple keys with a "*" if the value matches DESCRIPTION. """
+        new = {}
+        for key, value in ntuple.items():
+            #print(value)
+            #print(description)
+            if value == description:
+                new["*" + key] = value
+            elif type(value) == dict:
+                #pass
+                new[key] = self.tag_ntuple(value, description)
+                # Tag ntuple on value
+            else:
+                new[key] = value
+        return new
+
 
     def evaluate_scalar_attribute(self, attribute, value, objs, kind):
         if kind == "superlative":
@@ -572,7 +623,6 @@ class BasicRobotProblemSolver(CoreProblemSolver):
         else:
             msg = "Yes." if self.evaluate_condition(parameters) else "No."
             return msg
-            #self.respond_to_query(msg)
 
     def query_be2(self, parameters):
         return self.query_be(parameters)
@@ -654,6 +704,8 @@ class BasicRobotProblemSolver(CoreProblemSolver):
 
     def evaluate_can_push_move(self, parameters, negated=False):
         info = self.get_push_info(parameters)
+        if not info['actedUpon']:
+            return None
         #negated = self.eventFeatures['negated']
         protagonist = info['protagonist']
         distance = info['distance']['scaleDescriptor']['value']
@@ -752,6 +804,8 @@ class BasicRobotProblemSolver(CoreProblemSolver):
         return comparator(f1, f2)
 
     def evaluate_obj_predication(self, obj, predication):
+        if not obj:
+            return False
         kind = predication['kind'] if 'kind' in predication else 'unmarked'
         for k, v in predication.items():
             if k == "size" or k == "weight":
@@ -765,7 +819,10 @@ class BasicRobotProblemSolver(CoreProblemSolver):
                 return self.is_identical(obj, predication['identical']['objectDescriptor'])
             elif k == 'relation':
                 if v =='near':
-                    if not self.is_near(obj, self.get_described_object(predication['objectDescriptor'])):
+                    related = self.get_described_object(predication['objectDescriptor'])
+                    if related and not self.is_near(obj, related):
+                        return False
+                    if not related:
                         return False
                 if v == "in":
                     # TODO: Implement this...
