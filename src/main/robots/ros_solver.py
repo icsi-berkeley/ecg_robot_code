@@ -47,15 +47,25 @@ class ROSProblemSolver(BasicRobotProblemSolver):
     def move(self, agent, x, y, z=0.0, speed=2, tolerance=3.5, collide=False):
         self.publish('moveToXY', [x, y])
 
+    def bring(self, actor, information, final_destination, goal_object):
+        # self.move(actor, information['actedUpon'].pos['x'], information['actedUpon'].pos['y'])
+        # HACK
+        goal = self.get_described_object(goal_object['objectDescriptor']).grasp_pos
+        final_destination = {'x': goal['x'], 'y': goal['y']}
+        self.move_to_pose(actor, information['actedUpon'].grasp_pos['x'], information['actedUpon'].grasp_pos['y'])
+        self.grasp_object(actor, information['actedUpon']['name'])
+        self.move_to_pose(actor, final_destination['x'], final_destination['y'])
+        self.release()
 
-    def moveToPose(self, agent, x, y, rotation):
-        pass
-        # TO DO: makes API call to CCI/ROS-interface, instructs AGENT to move to coordinate (x, y) at angle ROTATION
+    def release(self):
+        self.publish("release", [])
 
-    def grasp(self, agent, obj):
-        pass
-        # TO DO: makes API call to CCI/Ros-interface, instructs AGENT to grasp object_name
-        # Note: "command_grasp" will move to object location, then call this method
+    def grasp_object(self, actor, object_label):
+        self.publish("grasp_object", [object_label])
+
+
+    def move_to_pose(self, agent, x, y, rotation=0.0):
+        self.publish("move_to_pose", [x, y, rotation])
 
 
     def build_world(self, external_file):

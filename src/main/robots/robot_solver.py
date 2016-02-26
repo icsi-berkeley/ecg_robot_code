@@ -38,7 +38,8 @@ class BasicRobotProblemSolver(CoreProblemSolver):
         self.headings = dict(north=(0.0, 1.0, 0.0), south=(0.0, -1.0, 0.0), 
                     east=(1.0, 0.0, 0.0), west=(-1.0, 0.0, 0.0))
         
-        self.world = self.build_world("mock/world.json") #build('mock')
+        self.world = self.build_world("ros/world.json") #build('mock')
+        #self.world = self.build_world("mock/world.json") #build('mock')
 
         self._recent = None
         self._wh = None
@@ -176,9 +177,8 @@ class BasicRobotProblemSolver(CoreProblemSolver):
             elif information['heading']:
                 temp = self.get_push_direction_info(information['heading']['headingDescriptor'], information['actedUpon'], information['distance']['scaleDescriptor']['value'])
                 final_destination = dict(x=temp['x2'], y=temp['y2'])
-            self.move(actor, information['actedUpon'].pos['x'], information['actedUpon'].pos['y'])
-            self.grasp(actor, information['actedUpon']['name'])
-            self.move(actor, final_destination['x'], final_destination['y'])
+            self.bring(actor, information, final_destination, information['goal_object'])
+
         else:
             return answer['reason']
 
@@ -187,6 +187,8 @@ class BasicRobotProblemSolver(CoreProblemSolver):
         heading = parameters['affectedProcess']['heading']['headingDescriptor']
         protagonist = self.get_described_object(parameters['protagonist']['objectDescriptor'])
         goal = parameters['affectedProcess']['spg']['spgDescriptor']['goal']
+        
+
         distance = parameters['affectedProcess']['distance']
         info = dict(goal=None,
                     heading=dict(headingDescriptor=None),
@@ -197,6 +199,7 @@ class BasicRobotProblemSolver(CoreProblemSolver):
         info['actedUpon'] = obj
         if goal:
             info['goal'] = self.goal_info(goal)
+        info['goal_object'] = goal # HACK for bring for ROS and Manfred
         info['heading']['headingDescriptor'] = parameters['affectedProcess']['heading']['headingDescriptor'] #self.heading_info(obj, parameters.affectedProcess['heading'], distance)
         info['distance'] = distance
         info['protagonist'] = protagonist
@@ -361,6 +364,16 @@ class BasicRobotProblemSolver(CoreProblemSolver):
         return self.distance(first, second) <= self.get_threshold(first, second)
 
 
+    def is_on(self, first, second):
+        """ Could be redone. Just tests whether the z value of second is higher than first, and x and y are close."""
+        if first == second:
+            return False
+        #t = self.get_threshold(first, second)
+        #print(t)
+        if second.pos['z'] >= first.pos['z']:
+            return False
+        return self.distance(first,second) <= 2
+
     def get_described_position(self, description, protagonist):
         """ Returns the position/location described, e.g. "into the room", "near the box".
         (As opposed to an object described in relation to a location.) """
@@ -477,10 +490,18 @@ class BasicRobotProblemSolver(CoreProblemSolver):
         if 'locationDescriptor' in description:
             objs = self.get_described_location(objs, description['locationDescriptor'], multiple=multiple)
 
+        copy = []
+        if "function" in description:
+            for obj in objs:
+                if hasattr(obj, "function") and obj.function == description['function']:
+                    copy.append(obj)
+            objs = copy
         if "processDescriptor" in description:
             objs = self.get_described_process(objs, description['processDescriptor'])
         # TODO: Partdescriptor
         return objs
+
+
 
 
 
@@ -500,7 +521,7 @@ class BasicRobotProblemSolver(CoreProblemSolver):
                 message = "More than one object matches the description of {}.".format(self.assemble_string(description))
                 self.identification_failure(message)
                 return None
-            print(objs)
+            #print(objs)
             message = "Which '{}'?".format(self.assemble_string(description))
             # TODO: Tag n-tuple
             tagged = self.tag_ntuple(dict(self.ntuple), description)
@@ -827,6 +848,12 @@ class BasicRobotProblemSolver(CoreProblemSolver):
                 if v == "in":
                     # TODO: Implement this...
                     return False
+                if v == "on":
+                    related = self.get_described_object(predication['objectDescriptor'])
+                    if related and not self.is_on(obj, related):
+                        return False
+                    if not related:
+                        return False
             # TODO: "Object does not have property k". Send message?
             elif hasattr(obj, k) and getattr(obj, k) != v:
                 return False
@@ -901,6 +928,19 @@ class BasicRobotProblemSolver(CoreProblemSolver):
         mover.pos['x'] = x
         mover.pos['y'] = y
         mover.pos['z'] = z
+
+    def bring(self, actor, information, final_destination, goal_object):
+        # self.move(actor, information['actedUpon'].pos['x'], information['actedUpon'].pos['y'])
+        # HACK
+        #goal = self.get_described_object(goal_object['objectDescriptor']).grasp_pos
+        #final_destination = {'x': goal['x'], 'y': goal['y']}
+        self.move(actor, information['actedUpon'].pos['x'], information['actedUpon'].pos['y'])
+        self.grasp(actor, information['actedUpon']['name'])
+        self.move(actor, final_destination['x'], final_destination['y'])
+        self.release(actor, information['actedUpon']['name'])
+
+    def release(self, actor, label):
+        print("{} is releasing the {}.".format(actor.name, label))
 
     def grasp(self, grasper, object_name):
         print("{} is grasping {}.".format(grasper.name, object_name))
