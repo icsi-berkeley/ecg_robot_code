@@ -45,7 +45,7 @@ class ROSProblemSolver(BasicRobotProblemSolver):
 
 
     def move(self, agent, x, y, z=0.0, speed=2, tolerance=3.5, collide=False):
-        self.publish('moveToXY', [x, y])
+        self.move_to_pose(agent, x, y) #?
 
     def bring(self, actor, information, final_destination, goal_object):
         # self.move(actor, information['actedUpon'].pos['x'], information['actedUpon'].pos['y'])
