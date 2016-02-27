@@ -79,7 +79,8 @@ class ROSProblemSolver(BasicRobotProblemSolver):
         for pos, item in enumerate(msg.name):
             pose = msg.pose[pos]
             if not hasattr(self.world, item):
-                new = Struct(pos=pose.position, orientation=pose.orientation, name=item)
+                new_pos = {'x': pose.position.x, 'y': pose.position.y}
+                new = Struct(pos=new_pos, orientation=pose.orientation, name=item)
                 setattr(self.world, item, new)
             else:
                 obj = getattr(self.world, item)
