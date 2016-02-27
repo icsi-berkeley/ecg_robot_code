@@ -366,6 +366,9 @@ class BasicRobotProblemSolver(CoreProblemSolver):
 
     def is_on(self, first, second):
         """ Could be redone. Just tests whether the z value of second is higher than first, and x and y are close."""
+        
+        print(first)
+        print(second)
         if first == second:
             return False
         #t = self.get_threshold(first, second)
