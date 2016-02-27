@@ -46,6 +46,7 @@
 				 "type": "marker",
 				 "weight": 2,
 				 "pos":{"x": 2, "y": 2, "z": 0},
+				 "grasp_pos": {"x": 0.07, "y": 5.7, "z": 0},
 				 "name": "blue_marker"},
 "red_marker": {"color": "red",
 				 "type": "marker",

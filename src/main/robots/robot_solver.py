@@ -120,8 +120,8 @@ class BasicRobotProblemSolver(CoreProblemSolver):
             return None
         answer = self.evaluate_can_grasp(info)
         if answer['value']:
-            self.move(info['protagonist'], info['actedUpon'].pos['x'], info['actedUpon'].pos['x'])
-            self.grasp(info['protagonist'], info['actedUpon'].name)
+            self.pickup(info)
+
         else:
             return answer['reason']
 
@@ -941,6 +941,12 @@ class BasicRobotProblemSolver(CoreProblemSolver):
         self.grasp(actor, information['actedUpon']['name'])
         self.move(actor, final_destination['x'], final_destination['y'])
         self.release(actor, information['actedUpon']['name'])
+
+    def pickup(self, info):
+        x, y = info['actedUpon'].grasp_pos['x'], info['actedUpon'].grasp_pos['y']
+        #self.move(info['protagonist'], info['actedUpon'].pos['x'], info['actedUpon'].pos['x'])
+        self.move(info['protagonist'], x, y)
+        self.grasp(info['protagonist'], info['actedUpon'].name)
 
     def release(self, actor, label):
         print("{} is releasing the {}.".format(actor.name, label))

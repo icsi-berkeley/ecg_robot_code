@@ -89,6 +89,13 @@ class ROSProblemSolver(BasicRobotProblemSolver):
                 setattr(self.world, item, obj)
 
 
+    def pickup(self, info):
+        x, y = info['actedUpon'].grasp_pos['x'], info['actedUpon'].grasp_pos['y']
+        self.move_to_pose(info['protagonist'], x, y)
+        #self.move(info['protagonist'], info['actedUpon'].pos['x'], info['actedUpon'].pos['x'])
+        self.grasp_object(info['protagonist'], info['actedUpon'].name)
+
+
 
         
 
