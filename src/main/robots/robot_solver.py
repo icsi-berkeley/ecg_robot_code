@@ -943,6 +943,8 @@ class BasicRobotProblemSolver(CoreProblemSolver):
         self.release(actor, information['actedUpon']['name'])
 
     def pickup(self, info):
+        print(info['actedUpon'])
+        print(info['actedUpon'].name)
         x, y = info['actedUpon'].grasp_pos['x'], info['actedUpon'].grasp_pos['y']
         #self.move(info['protagonist'], info['actedUpon'].pos['x'], info['actedUpon'].pos['x'])
         self.move(info['protagonist'], x, y)

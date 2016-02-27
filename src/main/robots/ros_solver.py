@@ -38,7 +38,7 @@ class ROSProblemSolver(BasicRobotProblemSolver):
 
     def publish(self, commandName, commArgs):
         # Bit hacky, need to check that this works for non-move commands...
-        command = "{}({})".format(commandName, str(commArgs).replace("[", "").replace("]", ""))
+        command = "{}({})".format(commandName, str(commArgs).replace("[", "").replace("]", "").replace("'", "").replace("'",""))
         rospy.loginfo("Publishing CQI command " + command)
         self.publisher.publish(String(command))
         # This will publish to the ROS interface
