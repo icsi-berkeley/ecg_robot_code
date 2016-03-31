@@ -1,6 +1,6 @@
 export ECG_FED=FED1
-#python src/main/robots/morse_solver.py ProblemSolver &
-python3 src/main/robots/robot_solver.py ProblemSolver &
+python src/main/robots/morse_solver.py ProblemSolver &
+#python3 src/main/robots/robot_solver.py ProblemSolver &
 #python3 src/main/robots/ros_solver.py ProblemSolver &
 
 #export JYTHONPATH=../framework_code/build/compling.core.jar:../framework_code/src/main/nluas/language

@@ -31,17 +31,20 @@ from robots.robot_utils import *
 
 import os
 dir_name = os.path.dirname(os.path.realpath(__file__))
+path = os.getcwd() + "/src/main/"
 
 class BasicRobotProblemSolver(CoreProblemSolver):
     def __init__(self, args):
+        
         CoreProblemSolver.__init__(self, args)
+        self.__path__ = os.getcwd() + "/src/main/"
         self.headings = dict(north=(0.0, 1.0, 0.0), south=(0.0, -1.0, 0.0), 
                     east=(1.0, 0.0, 0.0), west=(-1.0, 0.0, 0.0))
         
-        self.world = self.build_world("ros/world.json") #build('mock')
+        self.world = self.build_world("mock/world.json") #build('mock')
         #self.world = self.build_world("mock/world.json") #build('mock')
 
-        self._recent = None
+        self._recent = []
         self._wh = None
         self._speed = 4
         # This depends on how size is represented in the grammar.
@@ -61,6 +64,9 @@ class BasicRobotProblemSolver(CoreProblemSolver):
                                     'robot': .7}
         self._distance_threshold = 4
         self._attributes = ['size', 'color', 'weight']
+
+    def initialize_templates(self):
+        self.parameter_templates = self.read_templates(self.__path__+"parameter_templates.json")
 
 
     def build_world(self, external_file):
@@ -505,21 +511,35 @@ class BasicRobotProblemSolver(CoreProblemSolver):
         return objs
 
 
-
+    def filter_recent_referents(self, referent):
+        types = [i.type for i in self._recent]
+        if referent.type in types:
+            index = types.index(referent.type)
+            self._recent.remove(self._recent[index])
+        self._recent.append(referent)    
 
 
     def get_described_object(self, description, multiple=False):
         objs = self.get_described_objects(description, multiple)
         if len(objs) == 1:
-            self._recent = objs[0]
+            self.filter_recent_referents(objs[0])
             return objs[0]
         elif len(objs) > 1:
             if "givenness" in description:
-                if description['givenness'] == 'typeIdentifiable' or description['givenness'] == "distinct":
-                    if self._recent in objs:
-                        objs.remove(self._recent)
+                if description['givenness'] in ['typeIdentifiable', "distinct"]:
+                    # Should actually iterate through _recent 
+                    copy = list(objs)
+                    if description['givenness'] == "distinct":
+                        for obj in objs:
+                            if obj in self._recent:
+                                print(obj.name)
+                                copy.remove(obj)
                     # TODO: do something better than just random choice, e.g. "is a box near the blue box" (really means ANY)
-                    return random.choice(objs)
+                    selection = random.choice(copy)
+                    #self._recent.append(selection)
+                    self.filter_recent_referents(selection)
+
+                    return selection
             elif self._wh:
                 message = "More than one object matches the description of {}.".format(self.assemble_string(description))
                 self.identification_failure(message)
