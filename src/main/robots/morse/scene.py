@@ -157,13 +157,13 @@ def build():
     box4_instance.properties(Object=True, Label = "box4_instance", Type="box", Catch_me=True, Description=json.dumps({'color': 'red', 'size': 1, 'weight': 5}))
 
     
-    
+    """
     box5_instance = PassiveObject(indoor_path, 'PinkBox')
     box5_instance.setgraspable()
     box5_instance.translate(x=6, y=0.0, z=0)
     #box4.rotate(z=0.2)
     box5_instance.properties(Object=True, Label = "box5_instance", Type="box", Catch_me=True, Description=json.dumps({'color': 'pink', 'size': .5, 'weight': 3}))
-    
+    """
 
     # Environment
     #env = Environment('indoors-1/empty-room')

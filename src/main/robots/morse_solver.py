@@ -7,8 +7,8 @@ Author: seantrott <seantrott@icsi.berkeley.edu>
 # TODO
 from robot_solver import *
 from robot_utils.avoidance import TwoDimensionalAvoidanceSolver
-#from morse.simulator import Robot
-print("here")
+from morse.simulator import Robot
+
 
 class MorseRobotProblemSolver(BasicRobotProblemSolver, TwoDimensionalAvoidanceSolver):
     def __init__(self, args):

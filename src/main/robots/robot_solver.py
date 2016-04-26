@@ -188,6 +188,17 @@ class BasicRobotProblemSolver(CoreProblemSolver):
         else:
             return answer['reason']
 
+
+    def command_tell(self, parameters):
+        """ Determines who listener and speaker is """
+        listener = self.get_described_object(parameters['listener']['objectDescriptor'])
+        print("Listener is {}".format(listener.name))
+        speaker = self.get_described_object(parameters['protagonist']['objectDescriptor'])
+        print("Speaker is {}".format(speaker.name))
+        print("\n")
+        print(parameters['content'])
+        print("\n")
+
     def get_bring_info(self, parameters):
         """ Same body as get_push_info, since they use similar structures. """
         heading = parameters['affectedProcess']['heading']['headingDescriptor']
@@ -310,7 +321,7 @@ class BasicRobotProblemSolver(CoreProblemSolver):
 
     def push_direction(self, heading, actedUpon, distance, protagonist):
         info = self.get_push_direction_info(heading, actedUpon, distance['scaleDescriptor']['value'])
-        self.move(protagonist, info['x1'], info['y1'], tolerance=3)
+        self.move(protagonist, info['x1'], info['y1'], tolerance=2)
         self.move(protagonist, info['x2'], info['y2'], tolerance=3, collide=True)
 
 
@@ -373,8 +384,6 @@ class BasicRobotProblemSolver(CoreProblemSolver):
     def is_on(self, first, second):
         """ Could be redone. Just tests whether the z value of second is higher than first, and x and y are close."""
         
-        print(first)
-        print(second)
         if first == second:
             return False
         #t = self.get_threshold(first, second)
@@ -447,6 +456,23 @@ class BasicRobotProblemSolver(CoreProblemSolver):
         else:
             return locations
 
+    def get_between(self, candidates, obj2, obj3):
+        final = []
+        for obj in candidates:
+            if (obj != obj2 and obj!=obj3) and self.is_between(obj2.pos, obj3.pos, obj.pos):
+                print(obj.name)
+                final.append(obj)
+        return final
+
+
+    def get_described_relation(self, candidates, description, multiple=False):
+        relation = description['relation']
+        if relation == "between":
+            obj2 = self.get_described_object(description['entity2']['objectDescriptor'])
+            obj3 = self.get_described_object(description['entity3']['objectDescriptor'])
+            if obj2 and obj3:
+                return self.get_between(candidates, obj2, obj3)
+
 
     def get_described_process(self, objs, description):
         # TODO: Let's assume, for now, that we're just describing "one" parameterized action.
@@ -499,6 +525,8 @@ class BasicRobotProblemSolver(CoreProblemSolver):
         if 'locationDescriptor' in description:
             objs = self.get_described_location(objs, description['locationDescriptor'], multiple=multiple)
 
+        if "relationDescriptor" in description:
+            objs = self.get_described_relation(objs, description['relationDescriptor'], multiple=multiple)
         copy = []
         if "function" in description:
             for obj in objs:
@@ -532,19 +560,16 @@ class BasicRobotProblemSolver(CoreProblemSolver):
                     if description['givenness'] == "distinct":
                         for obj in objs:
                             if obj in self._recent:
-                                print(obj.name)
                                 copy.remove(obj)
                     # TODO: do something better than just random choice, e.g. "is a box near the blue box" (really means ANY)
                     selection = random.choice(copy)
                     #self._recent.append(selection)
                     self.filter_recent_referents(selection)
-
                     return selection
             elif self._wh:
                 message = "More than one object matches the description of {}.".format(self.assemble_string(description))
                 self.identification_failure(message)
                 return None
-            #print(objs)
             message = "Which '{}'?".format(self.assemble_string(description))
             # TODO: Tag n-tuple
             tagged = self.tag_ntuple(dict(self.ntuple), description)
@@ -781,7 +806,8 @@ class BasicRobotProblemSolver(CoreProblemSolver):
             return self.evaluate_can_push_move(parameters, negated)
         else:
             # "did Robot1 push Box2?", etc.
-            print(info)
+            #print(info)
+            return {'value': False, 'reason': "I can't answer that..."}
 
 
     def is_between(self, a, b, c):
@@ -813,6 +839,8 @@ class BasicRobotProblemSolver(CoreProblemSolver):
                 #if actual.pos == destination:
                 #    return {'value': False, 'reason': "{} is in the way".format(stripped)}
             return {'value': True, 'reason': "it can"}
+        else:
+            return {'value': False, 'reason': "I can't answer that..."}
 
     # Assumes force is in Newtons, for W=F*D equation    
     def calculate_work(self, force, distance):
@@ -978,3 +1006,6 @@ class BasicRobotProblemSolver(CoreProblemSolver):
 
 if __name__ == "__main__":
     solver = BasicRobotProblemSolver(sys.argv[1:])
+
+
+
