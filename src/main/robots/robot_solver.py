@@ -28,6 +28,7 @@ import sys
 import random
 from math import sqrt
 from robots.robot_utils import *
+import time
 
 import os
 dir_name = os.path.dirname(os.path.realpath(__file__))
@@ -227,8 +228,16 @@ class BasicRobotProblemSolver(CoreProblemSolver):
         information = self.get_move_info(parameters)
         destination = information['destination']
         if destination:
+            pos = information['protagonist'].pos
+            fuel_cost = self.calculate_work(information['protagonist'].weight, self.euclidean_distance(pos, destination))
+            information['protagonist'].fuel -= fuel_cost
             self.move(information['protagonist'], destination['x'], destination['y'], destination['z'], 
                 information['speed'], tolerance=3.5)
+            
+            
+            
+            
+            #setattr(getattr(information['protagonist'], 'fuel'), 
         else:
             pass
             # TO DO: What to do here?
@@ -302,13 +311,18 @@ class BasicRobotProblemSolver(CoreProblemSolver):
             return None
         if info['goal']:
             # Create self.push_to_location
+
             answer = self.evaluate_can_push_move(parameters)
             self.push_to_location(info['actedUpon'], info['goal'], info['protagonist'])
             
         elif info['heading']:
             answer = self.evaluate_can_push_move(parameters)
+            distance = info['distance']['scaleDescriptor']['value']
+            work = self.calculate_work(info['actedUpon'].weight + info['protagonist'].weight, distance)
             if answer['value']:
+                
                 self.push_direction(info['heading']['headingDescriptor'], info['actedUpon'], info['distance'], info['protagonist'])
+                info['protagonist'].fuel -= work
             else:
                 return answer['reason']
 
@@ -758,6 +772,34 @@ class BasicRobotProblemSolver(CoreProblemSolver):
                 index += 1
             self.respond_to_query(message=reply)
 
+    def assertion_possess(self, parameters):
+        """ Changes some value in the world, based on the properties of the protagonist and the posssessed object. 
+        Currently operates in much the same way as assertion_be, since properties and possessions 
+        are stored in the same way in the world model.
+        """
+        protagonist = self.get_described_object(parameters['protagonist']['objectDescriptor'])
+        possessed = parameters['possessed']['objectDescriptor']
+        if 'quantity' in possessed:
+            prop, value = possessed['quantity']['property'], possessed['quantity']['amount']['value']
+            setattr(protagonist, prop, value)
+            self.respond_to_query("Set {} of {} to {}".format(prop, protagonist.name, value))
+            # TO DO; color, size, name?
+
+    def evaluate_possess(self, parameters):
+        protagonist = self.get_described_object(parameters['protagonist']['objectDescriptor'])
+        #possessed = self.get_described_object(parameters['possessed']['objectDescriptor'])
+        possession_type = parameters['possessed']['objectDescriptor']['type']
+        if hasattr(protagonist, possession_type):
+            possession = getattr(protagonist, possession_type)
+            try:
+                print(possession)
+                return {'value':possession>0, 'reason':"{} is at {}".format(possession_type, possession)}
+            except TypeError:
+                return dict(value=True, reason="Value of {} is {}".format(possession_type, possession))
+        else:
+            return dict(value=False, reason="{} does not have a property or possession of type {}.".format(protagonist.name, possession_type))
+
+    
 
     def query_move(self, parameters):
         answer = self.evaluate_move(parameters)
@@ -852,18 +894,15 @@ class BasicRobotProblemSolver(CoreProblemSolver):
 
 
     def evaluate_condition(self, parameters):
-        #parameters = event['eventProcess']
         action = parameters['actionary']
-
-        #protagonist = self.get_described_object(parameters['protagonist']['objectDescriptor'])
         dispatch = getattr(self, "evaluate_{}".format(action))
         answer = dispatch(parameters)
         value, reason = answer['value'], answer['reason']
-        #if protagonist:
+        if reason and not value:
+            self.respond_to_query(reason)
         negated = False
         if self.p_features and 'negated' in self.p_features:
             negated = self.p_features['negated']
-        #negated = parameters['state']['negated']
         if negated:
             return not value #self.evaluate_be(parameters)
         else:
@@ -945,6 +984,7 @@ class BasicRobotProblemSolver(CoreProblemSolver):
             if 'amount' in state:
                 prop, value = state['amount']['property'], state['amount']['value']
                 setattr(protagonist, prop, value)
+                self.respond_to_query("Set {} of {} to {}".format(prop, protagonist.name, value))
             # TO DO; color, size, name?
 
 
@@ -954,14 +994,37 @@ class BasicRobotProblemSolver(CoreProblemSolver):
         self.route_event(parameters, "assertion")
         #self.decoder.pprint_ntuple(ntuple)
 
+    def solve_while(self, condition, core, predicate):
+        #self.route_action(condition['eventProcess'], "assertion")
+        while self.evaluate_condition(condition['eventProcess']):
+            error_descriptor = self.route_event(core, predicate)
+            if error_descriptor:
+                #self.return_error_descriptor(error)
+                break
+
+            # This block is somewhat hacky
+            # It's necessary to keep self.eventFeatures and self.p_features from being overwritten
+            # The main thing to "track" is really modality and negated values, for evaluating the condition
+            efeatures, pfeatures = condition['e_features'], condition['eventProcess']['p_features']
+            if efeatures:
+                self.eventFeatures = efeatures['eventFeatures']
+            if pfeatures:
+                self.p_features = pfeatures['processFeatures']
+
     def solve_conditional_imperative(self, ntuple):
         parameters = ntuple['eventDescriptor']
+        value = parameters['conditionalValue']
         condition = parameters['condition']
-        features = condition['e_features']
-        if features:
-            # Set eventFeatures
-            self.eventFeatures = features['eventFeatures']
+        efeatures, pfeatures = condition['e_features'], condition['eventProcess']['p_features']
         core = parameters['core']
+        if efeatures:
+            # Set eventFeatures
+            self.eventFeatures = efeatures['eventFeatures']
+        if pfeatures:
+            self.p_features = pfeatures['processFeatures']
+        if value == "ongoing":
+            return self.solve_while(condition, core, "command")
+        
         if self.evaluate_condition(condition['eventProcess']):
             self.route_event(core, "command")
         elif parameters['else']['eventProcess']:

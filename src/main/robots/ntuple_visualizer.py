@@ -9,6 +9,7 @@ A simple program to output n-tuples using Analyzer+Specializer. Not reliant on a
 from robot_specializer import *
 from nluas.ntuple_decoder import *
 import traceback
+import pprint
 
 decoder = NtupleDecoder()
 
@@ -29,6 +30,7 @@ while True:
             for fs in semspecs:
                 try:
                     ntuple = rs.specialize(fs)
+                    pprint.pprint(ntuple)
                     #decoder.pprint_ntuple(ntuple)
                     break
                 except Exception as e:
