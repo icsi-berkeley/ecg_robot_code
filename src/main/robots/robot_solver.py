@@ -792,7 +792,6 @@ class BasicRobotProblemSolver(CoreProblemSolver):
         if hasattr(protagonist, possession_type):
             possession = getattr(protagonist, possession_type)
             try:
-                print(possession)
                 return {'value':possession>0, 'reason':"{} is at {}".format(possession_type, possession)}
             except TypeError:
                 return dict(value=True, reason="Value of {} is {}".format(possession_type, possession))
@@ -1016,7 +1015,7 @@ class BasicRobotProblemSolver(CoreProblemSolver):
         value = parameters['conditionalValue']
         condition = parameters['condition']
         efeatures, pfeatures = condition['e_features'], condition['eventProcess']['p_features']
-        core = parameters['core']
+        core = parameters['conclusion']
         if efeatures:
             # Set eventFeatures
             self.eventFeatures = efeatures['eventFeatures']
@@ -1027,8 +1026,8 @@ class BasicRobotProblemSolver(CoreProblemSolver):
         
         if self.evaluate_condition(condition['eventProcess']):
             self.route_event(core, "command")
-        elif parameters['else']['eventProcess']:
-            self.route_event(parameters['else'], "command")
+        elif parameters['alternative']['eventProcess']:
+            self.route_event(parameters['alternative'], "command")
         else:
             return "Condition not satisfied."
 
