@@ -4,26 +4,27 @@ Author: seantrott <seantrott@icsi.berkeley.edu>
 
 A RobotProblemSolver that extends the CoreProblemSolver in the NLUAS module.
 
-Actions, like "move", should be named by predicate + action type.
-Thus: query_move, command_move, etc.
-Or: query_be, command_be, etc.
+The CoreProblemSolver handles much of the dispatching and routing. The design here
+is fairly general and could probably be used across domains, with different implementations 
+of the individual methods that "route_action" routes to:
+-command_{actionary} --> executes command from parameters 
+-query_{actionary} --> answers question from parameters 
+    -evaluate_{actionary} --> returns a boolean and a msg, e.g. "not enough fuel" 
+-assertion_{actionary} --> if possible, it makes a change to the underlying world state based on parameters
 
-Questions:
-(1) Keep in mind: should we route based on actions? E.g., "move to the blue box?"
-This was how it was done previously, but what about queries/assertions: "he moved to the blue box",
-"can you move to the blue box?", "which box did you move?"
+The other key method is get_described_object, which unpacks an ObjectDescriptor and 
+maps it to a list of potential candidates from the world model. In certain cases,
+clarification is requested.
 
-Possible solutions:
-(1) Separate "information" functions like gathering information from an n-tuple and matching to world,
-from action/query functions. Thus, we'd have several functions involving "move", including:
--"do_move"
--"move_info": gather information (used in do_move)
+
+------
+See LICENSE.txt for licensing information.
+------
 
 """
 
 from nluas.app.core_solver import *
 from nluas.utils import *
-from robots.builder import *
 import sys
 import random
 from math import sqrt

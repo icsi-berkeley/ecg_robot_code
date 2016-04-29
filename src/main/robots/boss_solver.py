@@ -1,6 +1,14 @@
 """
 Author: seantrott <seantrott@icsi.berkeley.edu>
 
+Defines an Boss-Agent for a multi-agent system. Controls
+multiple worker-agents and routes n-tuples to them,
+mediating communication.
+
+------
+See LICENSE.txt for licensing information.
+------
+
 """
 
 from robots.robot_solver import BasicRobotProblemSolver

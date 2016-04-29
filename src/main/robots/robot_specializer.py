@@ -1,5 +1,11 @@
 """
 Author: seantrott <seantrott@icsi.berkeley.edu>
+
+Extends CoreSpecializer and uses new templates.
+
+------
+See LICENSE.txt for licensing information.
+------
 """
 
 from nluas.language.core_specializer import *

@@ -1,3 +1,16 @@
+"""
+Defines a class for basic obstacle avoidance. 
+
+authors:
+<seantrott@icsi.berkeley.edu>
+<appriou.aurelien@berkeley.edu>
+
+------
+See LICENSE.txt for licensing information.
+------
+
+"""
+
 class TwoDimensionalAvoidanceSolver(object):
     def __init__(self):
         self.world = []

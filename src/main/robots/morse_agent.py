@@ -1,6 +1,10 @@
 """
 Author: seantrott <seantrott@icsi.berkeley.edu>
 
+------
+See LICENSE.txt for licensing information.
+------
+
 """
 
 from robots.agent_solver import AgentSolver

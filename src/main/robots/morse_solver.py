@@ -2,6 +2,13 @@
 A Morse Problem Solver (extends BasicRobotProblemSolver).
 Author: seantrott <seantrott@icsi.berkeley.edu>
 
+Extends BasicRobotProblemSolver as well as a path-planner (TwoDimensionalAvoidanceSolver),
+and makes API calls to Morse simulator.
+
+------
+See LICENSE.txt for licensing information.
+------
+
 """
 
 # TODO

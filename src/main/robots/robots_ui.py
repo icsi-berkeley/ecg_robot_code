@@ -1,6 +1,10 @@
 """
 Author: seantrott <seantrott@icsi.berkeley.edu>
 Similar to a regular UserAgent, but it uses a RobotSpecializer instead.
+
+------
+See LICENSE.txt for licensing information.
+------
 """
 
 from nluas.language.user_agent import *
