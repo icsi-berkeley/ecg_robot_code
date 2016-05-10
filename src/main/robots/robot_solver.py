@@ -30,15 +30,17 @@ import random
 from math import sqrt
 from robots.robot_utils import *
 import time
+from robot_utils.avoidance import TwoDimensionalAvoidanceSolver
 
 import os
 dir_name = os.path.dirname(os.path.realpath(__file__))
 path = os.getcwd() + "/src/main/"
 
-class BasicRobotProblemSolver(CoreProblemSolver):
+class BasicRobotProblemSolver(CoreProblemSolver, TwoDimensionalAvoidanceSolver):
     def __init__(self, args):
         
         CoreProblemSolver.__init__(self, args)
+        TwoDimensionalAvoidanceSolver.__init__(self)
         self.__path__ = os.getcwd() + "/src/main/"
         self.headings = dict(north=(0.0, 1.0, 0.0), south=(0.0, -1.0, 0.0), 
                     east=(1.0, 0.0, 0.0), west=(-1.0, 0.0, 0.0))
@@ -1042,6 +1044,7 @@ class BasicRobotProblemSolver(CoreProblemSolver):
         mover.pos['x'] = x
         mover.pos['y'] = y
         mover.pos['z'] = z
+
 
     def bring(self, actor, information, final_destination, goal_object):
         # self.move(actor, information['actedUpon'].pos['x'], information['actedUpon'].pos['y'])
