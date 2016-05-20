@@ -102,7 +102,7 @@ class BasicRobotProblemSolver(CoreProblemSolver, TwoDimensionalAvoidanceSolver):
         prot = parameters['protagonist']
         obj = self.get_described_object(prot['objectDescriptor'])
         if obj:
-            self._home = obj.pos
+            self._home = dict(obj.pos)  # Needs to copy it, otherwise it points to obj.pos always
 
     def solve_serial(self, parameters, predicate):
         self.route_action(parameters['process1'], predicate)
@@ -270,8 +270,8 @@ class BasicRobotProblemSolver(CoreProblemSolver, TwoDimensionalAvoidanceSolver):
         if "location" in goal:
             if goal['location'] == 'home':
                 # Determine "home" position
-                destination['x'] = self._home.x
-                destination['y'] = self._home.y
+                destination['x'] = self._home['x']
+                destination['y'] = self._home['y']
             else:
                 destination['x'] = goal['location'][0]
                 destination['y'] = goal['location'][1]
@@ -289,8 +289,10 @@ class BasicRobotProblemSolver(CoreProblemSolver, TwoDimensionalAvoidanceSolver):
         elif "locationDescriptor" in goal:
             properties = goal['locationDescriptor']
             position = self.get_described_position(properties, protagonist)
-            destination['x'], destination['y'], destination['z'] = position[0], position[1], position[2]
-        return destination
+            if position:
+                destination['x'], destination['y'], destination['z'] = position[0], position[1], position[2]
+
+        return None
 
     def getpos(self, inst):
         p = getattr(getattr(self.world, inst), 'pos')
@@ -413,33 +415,34 @@ class BasicRobotProblemSolver(CoreProblemSolver, TwoDimensionalAvoidanceSolver):
         """ Returns the position/location described, e.g. "into the room", "near the box".
         (As opposed to an object described in relation to a location.) """
         obj = self.get_described_object(description['objectDescriptor'])
+        print(description)
         if description['relation'] == 'behind':
             return self.behind(obj.pos, protagonist.pos)
         else:
-            print(properties['relation'])
+            print(description['relation'])
 
     def behind(self, position, reference):
-        xdiff = position.x - reference.y
-        ydiff = position.y - reference.y
+        xdiff = position['x'] - reference['x']
+        ydiff = position['y'] - reference['y']
         if abs(xdiff) > abs(ydiff):
             if xdiff>0:
-                new = [position.x +3, position.y]
+                new = [position['x'] +3, position['y']]
             elif xdiff<0:
-                new = [position.x -3, position.y]
+                new = [position['x'] -3, position['y']]
         elif abs(xdiff) < abs(ydiff):
             if ydiff>0:
-                new = [position.x, position.y+3]
+                new = [position['x'], position['y']+3]
             elif ydiff<0:
-                new = [position.x , position.y-3]
+                new = [position['x'] , position['y']-3]
         elif abs(xdiff) == abs(ydiff):
             if ydiff>0:
-                newy =  position.y+3
+                newy =  position['y']+3
             elif ydiff<0:
-                newy = position.y-3
+                newy = position['y']-3
             if xdiff>0:
-                newx =  position.x+3
+                newx =  position['x']+3
             elif xdiff<0:
-                newx = position.x-3
+                newx = position['x']-3
             new = [newx, newy]
         new.append(0)
         return new
@@ -916,10 +919,28 @@ class BasicRobotProblemSolver(CoreProblemSolver, TwoDimensionalAvoidanceSolver):
         f2 = getattr(obj2, feature)
         return comparator(f1, f2)
 
+
+    def compare_objects(self, obj, base, predication):
+        if "direction" not in predication:
+            return False
+        prop, direction = predication['property'], predication['direction']
+        p1, p2 = getattr(obj, prop), getattr(base, prop)
+        if direction == "increase":
+            return p1 > p2
+        elif direction == "decrease":
+            return p2 > p1
+        elif direction == "equal":
+            return p1 == p2
+        return False #?
+
     def evaluate_obj_predication(self, obj, predication):
         if not obj:
             return False
-        kind = predication['kind'] if 'kind' in predication else 'unmarked'
+        kind = predication['kind'] if 'kind' in predication else "unmarked"
+        if 'base' in predication:
+            base = predication['base']
+            base_obj = self.get_described_object(base['objectDescriptor'])
+            return self.compare_objects(obj, base_obj, predication)
         for k, v in predication.items():
             if k == "size" or k == "weight":
                 ranges = self._ranges[obj.type][k]
