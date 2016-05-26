@@ -98,6 +98,8 @@ class BasicRobotProblemSolver(CoreProblemSolver, TwoDimensionalAvoidanceSolver):
 
 
     def set_home(self, ntuple):
+        """ Sets the robot's "home" location before executing a command, so it can "return". This is a simple
+        case of remembering state. """
         parameters = ntuple['eventDescriptor']['eventProcess']
         prot = parameters['protagonist']
         obj = self.get_described_object(prot['objectDescriptor'])
@@ -109,7 +111,7 @@ class BasicRobotProblemSolver(CoreProblemSolver, TwoDimensionalAvoidanceSolver):
         self.route_action(parameters['process2'], predicate)
 
     def solve_command(self, ntuple):
-        self.set_home(ntuple)
+        #self.set_home(ntuple)
         parameters = ntuple['eventDescriptor']
         self.route_event(parameters, "command")
 
@@ -1034,8 +1036,8 @@ class BasicRobotProblemSolver(CoreProblemSolver, TwoDimensionalAvoidanceSolver):
             if pfeatures:
                 self.p_features = pfeatures['processFeatures']
 
-    def solve_conditional_imperative(self, ntuple):
-        parameters = ntuple['eventDescriptor']
+    def solve_conditional_command(self, parameters):
+        #parameters = ntuple['eventDescriptor']
         value = parameters['conditionalValue']
         condition = parameters['condition']
         efeatures, pfeatures = condition['e_features'], condition['eventProcess']['p_features']
