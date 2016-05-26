@@ -899,6 +899,11 @@ class BasicRobotProblemSolver(CoreProblemSolver, TwoDimensionalAvoidanceSolver):
         return force * displacement
 
 
+    def evaluate_cause(self, parameters):
+        dispatch = getattr(self, "evaluate_{}".format(parameters['causalProcess']['actionary']))
+        return dispatch(parameters)
+
+
 
     def evaluate_condition(self, parameters):
         action = parameters['actionary']
