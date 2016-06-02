@@ -2,32 +2,38 @@
     "imperative": {
         "predicate_type": "command",
         "return_type": "error_descriptor",
-        "eventDescriptor": null
+        "eventDescriptor": null,
+        "speechAct": "speechAct"
     },
     "conditional_declarative": {
         "predicate_type": "conditional_declarative",
         "return_type": "error_descriptor",
-        "eventDescriptor": null
+        "eventDescriptor": null,
+        "speechAct": "speechAct"
     },
     "conditional_imperative": {
         "predicate_type": "conditional_imperative",
         "return_type": "error_descriptor",
-        "eventDescriptor": null
+        "eventDescriptor": null,
+        "speechAct": "speechAct"
     },
     "yn_question": {
         "predicate_type": "query",
         "return_type": "boolean",
-        "eventDescriptor": null
+        "eventDescriptor": null,
+        "speechAct": "speechAct"
     },
     "wh_question": {
         "predicate_type": "query",
         "return_type": "none", 
-        "eventDescriptor": null
+        "eventDescriptor": null,
+        "speechAct": "speechAct"
     },
     "declarative": {
         "predicate_type": "assertion",
         "return_type": "error_descriptor",
-        "eventDescriptor": null
+        "eventDescriptor": null,
+        "speechAct": "speechAct"
     }
     }
 }

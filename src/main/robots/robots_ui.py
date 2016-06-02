@@ -27,4 +27,4 @@ class RobotUserAgent(UserAgent):
 
 if __name__ == "__main__":
 	ui = RobotUserAgent(sys.argv[1:])
-	ui.prompt()
+	#ui.prompt()

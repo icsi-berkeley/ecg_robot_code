@@ -258,7 +258,6 @@ class BasicRobotProblemSolver(CoreProblemSolver, TwoDimensionalAvoidanceSolver):
         #spg = selparameters['spg']
 
         spg = parameters['spg']['spgDescriptor']
-
         if spg['goal']:
             information['destination'] =self.goal_info(spg['goal'], information['protagonist'])
         elif parameters['heading']['headingDescriptor']:
@@ -286,6 +285,7 @@ class BasicRobotProblemSolver(CoreProblemSolver, TwoDimensionalAvoidanceSolver):
                 destination['x'] = obj.pos['x']
                 destination['y'] = obj.pos['y']
                 destination['z'] = obj.pos['z']
+                return destination
             else:
                 return None
         elif "locationDescriptor" in goal:
@@ -342,7 +342,7 @@ class BasicRobotProblemSolver(CoreProblemSolver, TwoDimensionalAvoidanceSolver):
 
     def push_direction(self, heading, actedUpon, distance, protagonist):
         info = self.get_push_direction_info(heading, actedUpon, distance['scaleDescriptor']['value'])
-        self.move(protagonist, info['x1'], info['y1'], tolerance=2)
+        self.move(protagonist, info['x1'], info['y1'], tolerance=4)
         self.move(protagonist, info['x2'], info['y2'], tolerance=3, collide=True)
 
 
