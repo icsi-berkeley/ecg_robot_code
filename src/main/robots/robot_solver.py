@@ -322,7 +322,7 @@ class BasicRobotProblemSolver(CoreProblemSolver, TwoDimensionalAvoidanceSolver):
             answer = self.evaluate_can_push_move(parameters)
             self.push_to_location(info['actedUpon'], info['goal'], info['protagonist'])
             
-        elif info['heading']:
+        elif info['heading'] and info['heading']['headingDescriptor']:
             answer = self.evaluate_can_push_move(parameters)
             distance = info['distance']['scaleDescriptor']['value']
             work = self.calculate_work(info['actedUpon'].weight + info['protagonist'].weight, distance)
@@ -332,6 +332,11 @@ class BasicRobotProblemSolver(CoreProblemSolver, TwoDimensionalAvoidanceSolver):
                 info['protagonist'].fuel -= work
             else:
                 return answer['reason']
+        else:
+            pass
+            #tagged = self.tag_ntuple(dict(self.ntuple), parameters['affectedProcess']['heading'], k="heading")
+            #self.request_clarification(tagged, "push it where? ")
+            # push where?
 
     def push_to_location(self, actedUpon, goal, protagonist):
         self.identification_failure(message=self._incapable)
@@ -357,7 +362,12 @@ class BasicRobotProblemSolver(CoreProblemSolver, TwoDimensionalAvoidanceSolver):
 
 
     def get_push_info(self, parameters):
-        heading = parameters['affectedProcess']['heading']['headingDescriptor']
+        # , "default": {"headingDescriptor": "north"}},
+        if parameters['affectedProcess']['heading']:
+            heading = parameters['affectedProcess']['heading']['headingDescriptor']
+        else:
+            heading = None
+        print(heading)
         protagonist = self.get_described_object(parameters['protagonist']['objectDescriptor'])
         goal = parameters['affectedProcess']['spg']['spgDescriptor']['goal']
         distance = parameters['affectedProcess']['distance']
@@ -370,7 +380,7 @@ class BasicRobotProblemSolver(CoreProblemSolver, TwoDimensionalAvoidanceSolver):
         info['actedUpon'] = obj
         if goal:
             info['goal'] = self.goal_info(goal)
-        info['heading']['headingDescriptor'] = parameters['affectedProcess']['heading']['headingDescriptor'] #self.heading_info(obj, parameters.affectedProcess['heading'], distance)
+        info['heading']['headingDescriptor'] = heading #parameters['affectedProcess']['heading']['headingDescriptor'] #self.heading_info(obj, parameters.affectedProcess['heading'], distance)
         info['distance'] = distance
         info['protagonist'] = protagonist
         return info
@@ -603,17 +613,21 @@ class BasicRobotProblemSolver(CoreProblemSolver, TwoDimensionalAvoidanceSolver):
             self.identification_failure(message)
             return None
 
-    def tag_ntuple(self, ntuple, description):
+    def tag_ntuple(self, ntuple, description, k=None):
         """ Tags all ntuple keys with a "*" if the value matches DESCRIPTION. """
         new = {}
         for key, value in ntuple.items():
             #print(value)
             #print(description)
             if value == description:
-                new["*" + key] = value
+                if k: 
+                    if key==k:
+                        new["*" + key] = value
+                else:
+                    new['*' + key] = value
             elif type(value) == dict:
                 #pass
-                new[key] = self.tag_ntuple(value, description)
+                new[key] = self.tag_ntuple(value, description, k)
                 # Tag ntuple on value
             else:
                 new[key] = value
