@@ -1082,7 +1082,10 @@ class BasicRobotProblemSolver(CoreProblemSolver, TwoDimensionalAvoidanceSolver):
 
 
     def move(self, mover, x, y, z=1.0, speed=2, tolerance=3, collide=False):
-        print("{} is moving to ({}, {}, {}).".format(mover.name, x, y, z))
+        
+        msg = "{} is moving to ({}, {}, {}).".format(mover.name, x, y, z)
+        #print()
+        self.respond_to_query(msg)
         mover.pos['x'] = x
         mover.pos['y'] = y
         mover.pos['z'] = z
