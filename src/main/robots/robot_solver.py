@@ -362,7 +362,7 @@ class BasicRobotProblemSolver(CoreProblemSolver, TwoDimensionalAvoidanceSolver):
 
 
     def get_push_info(self, parameters):
-        # , "default": {"headingDescriptor": "north"}},
+        # 
         if parameters['affectedProcess']['heading']:
             heading = parameters['affectedProcess']['heading']['headingDescriptor']
         else:
