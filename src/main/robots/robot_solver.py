@@ -367,7 +367,6 @@ class BasicRobotProblemSolver(CoreProblemSolver, TwoDimensionalAvoidanceSolver):
             heading = parameters['affectedProcess']['heading']['headingDescriptor']
         else:
             heading = None
-        print(heading)
         protagonist = self.get_described_object(parameters['protagonist']['objectDescriptor'])
         goal = parameters['affectedProcess']['spg']['spgDescriptor']['goal']
         distance = parameters['affectedProcess']['distance']
