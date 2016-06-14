@@ -1,3 +1,5 @@
+#!/bin/bash
+
 export ECG_FED=FED1
 #python3 src/main/robots/morse_solver.py ProblemSolver &
 python3 src/main/robots/robot_solver.py ProblemSolver &
