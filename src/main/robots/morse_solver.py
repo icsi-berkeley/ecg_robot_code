@@ -44,8 +44,6 @@ class MorseRobotProblemSolver(BasicRobotProblemSolver, TwoDimensionalAvoidanceSo
             line = self.compute_line(origin, destination, mover)
             smoothed = self.smooth_trajectory(line)
             for point in smoothed:
-                print("Tolerance: {}".format(tolerance))
-                print(point)
                 new, interrupted = mover.move(x=point[0], y=point[1], z=0, speed=speed, tolerance=tolerance)
                 if interrupted:
                     self.update_world(agent=mover, discovered=new)
