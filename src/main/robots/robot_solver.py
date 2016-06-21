@@ -36,11 +36,11 @@ import os
 dir_name = os.path.dirname(os.path.realpath(__file__))
 path = os.getcwd() + "/src/main/"
 
-class BasicRobotProblemSolver(CoreProblemSolver, TwoDimensionalAvoidanceSolver):
+class BasicRobotProblemSolver(CoreProblemSolver): #, TwoDimensionalAvoidanceSolver):
     def __init__(self, args):
         
         CoreProblemSolver.__init__(self, args)
-        TwoDimensionalAvoidanceSolver.__init__(self)
+        #TwoDimensionalAvoidanceSolver.__init__(self)
         self.__path__ = os.getcwd() + "/src/main/"
         self.headings = dict(north=(0.0, 1.0, 0.0), south=(0.0, -1.0, 0.0), 
                     east=(1.0, 0.0, 0.0), west=(-1.0, 0.0, 0.0))
@@ -227,6 +227,14 @@ class BasicRobotProblemSolver(CoreProblemSolver, TwoDimensionalAvoidanceSolver):
         info['distance'] = distance
         info['protagonist'] = protagonist
         return info
+
+
+    def command_stop(self, parameters):
+        process = parameters['process']
+        actionary = process['actionary']
+        protagonist = self.get_described_object(parameters['protagonist']['objectDescriptor'])
+        #print(protagonist.name)
+        # DO SOMETHING HERE...
 
 
     def command_move(self, parameters):
