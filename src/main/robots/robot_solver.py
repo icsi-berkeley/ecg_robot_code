@@ -40,7 +40,7 @@ class BasicRobotProblemSolver(CoreProblemSolver): #, TwoDimensionalAvoidanceSolv
     def __init__(self, args):
         
         CoreProblemSolver.__init__(self, args)
-        #TwoDimensionalAvoidanceSolver.__init__(self)
+        TwoDimensionalAvoidanceSolver.__init__(self)
         self.__path__ = os.getcwd() + "/src/main/"
         self.headings = dict(north=(0.0, 1.0, 0.0), south=(0.0, -1.0, 0.0), 
                     east=(1.0, 0.0, 0.0), west=(-1.0, 0.0, 0.0))

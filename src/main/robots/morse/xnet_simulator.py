@@ -49,6 +49,7 @@ class Robot(XnetWorker):
     # this isn't being called anymore, so we're not getting the proximity information? 
     def move(self, **to):
         #print('Simulator move: ')
+        print(to)
 
         inst = getattr(self.simulator, self.name)
 
