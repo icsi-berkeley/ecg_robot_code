@@ -38,7 +38,6 @@ path = os.getcwd() + "/src/main/"
 
 class BasicRobotProblemSolver(CoreProblemSolver): #, TwoDimensionalAvoidanceSolver):
     def __init__(self, args):
-        
         CoreProblemSolver.__init__(self, args)
         TwoDimensionalAvoidanceSolver.__init__(self)
         self.__path__ = os.getcwd() + "/src/main/"

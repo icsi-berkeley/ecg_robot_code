@@ -7,6 +7,7 @@ from robots.robot_solver import BasicRobotProblemSolver
 from robots.queue_solver import QueueSolver
 from robots.morse_solver import MorseRobotProblemSolver
 from robots.morse.xnet_simulator import Robot
+#from robots.morse.xnet_sim2 import Robot
 import sys
 
 class XnetRobotSolver(BasicRobotProblemSolver, QueueSolver):
@@ -18,12 +19,14 @@ class XnetRobotSolver(BasicRobotProblemSolver, QueueSolver):
         self.world = self.build_world('morse/world.json')
 
 
-class XnetMorseSolver(MorseRobotProblemSolver, XnetRobotSolver):
+class XnetMorseSolver(MorseRobotProblemSolver, QueueSolver):#, XnetRobotSolver):
     def __init__(self, args):
-        XnetRobotSolver.__init__(self, args)
+        #print("Initializing the XnetMorseSolver")
+        #XnetRobotSolver.__init__(self, args)
         MorseRobotProblemSolver.__init__(self, args)
-        inst = getattr(self.world, "robot1_instance")
-        self.build_solver_processor(self.commandQ, self, inst)
+        QueueSolver.__init__(self, args)
+        self.xnet_worker = getattr(self.world, "robot1_instance")
+        self.build_solver_processor(self.commandQ, self, self.xnet_worker)
 
 
 
@@ -34,6 +37,27 @@ class XnetMorseSolver(MorseRobotProblemSolver, XnetRobotSolver):
         #print(world)
         return world
 
+
+    def move(self, mover, x, y, z=0.0, speed=2, tolerance=3.5, collide=False):
+        kwargs={'x':x, 'y':y, 'z':z, 'tolerance': tolerance, 'speed': speed, 'collide': collide}
+##        print('solver.move kwargs: ', kwargs)
+        if not mover.isStarted(): 
+           mover.build_move_xnet()
+           mover.update_motion(**kwargs)
+           mover.start()
+           #print('move started')
+        elif mover.isDone():
+##           print('move is done')  
+           mover.build_move_xnet()
+           mover.update_motion(**kwargs)
+           mover.start()
+        elif mover.isOngoing():
+##           print('about to stop move Xnet') 
+           mover.suspend()   
+           mover.update_motion(**kwargs)
+           mover.restart()
+##        print('exiting xnet solver move')
+        self.update_world(agent=mover)
 
 if __name__ == "__main__":
     solver = XnetMorseSolver(sys.argv[1:])
