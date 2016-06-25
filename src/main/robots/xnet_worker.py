@@ -65,6 +65,7 @@ class XnetWorker(object):
     def attach_jvm(self):
         # attachThreadToJVM() can't be called at __init__; JRE dump
         if not self.jvmAttached:
+            #print("about to attach thread to JVM")
             jpype.attachThreadToJVM()
             self.jvmAttached = True
 ##            print('JVM attached to thread') 

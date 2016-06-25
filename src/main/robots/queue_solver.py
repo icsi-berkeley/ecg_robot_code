@@ -194,6 +194,7 @@ class QueueSolver(CoreProblemSolver):
 
     def route_dispatch(self, dispatch_function, parameters):
         """ Puts dispatch function and parameters on commandQ. """
+        #print(dispatch_function)
         if (not self.commandQ.empty()) or (not self.solver_command_processor.is_command_done()):
             self.bump_priority()
         self.commandQ.put((self.priority, self.get_tiebreaker(), (dispatch_function, parameters)))

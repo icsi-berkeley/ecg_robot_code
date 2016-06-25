@@ -9,7 +9,8 @@ class Robot(XnetWorker):
         XnetWorker.__init__(self)
         update(self, name=name, pos=Struct(x=0.0, y=0.0, z=0.0), simulator=Morse(), type="robot", size = size, weight=weight, fuel=fuel)
         self.inst = getattr(self.simulator, self.name)
-        self.build_move_xnet()
+        #self.build_move_xnet()
+        self.jvmAttached = False
 
     def build_move_xnet(self):
         xnet = MoveXnet(self.inst)
@@ -49,6 +50,7 @@ class Robot(XnetWorker):
     # this isn't being called anymore, so we're not getting the proximity information? 
     def move(self, **to):
         #print('Simulator move: ')
+        print(to)
 
         inst = getattr(self.simulator, self.name)
 
