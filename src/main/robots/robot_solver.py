@@ -48,6 +48,7 @@ class BasicRobotProblemSolver(CoreProblemSolver): #, TwoDimensionalAvoidanceSolv
         #self.world = self.build_world("mock/world.json") #build('mock')
 
         self._recent = []
+        self.recent_protagonists = []
         self._wh = None
         self._speed = 4
         # This depends on how size is represented in the grammar.
@@ -232,6 +233,16 @@ class BasicRobotProblemSolver(CoreProblemSolver): #, TwoDimensionalAvoidanceSolv
         process = parameters['process']
         actionary = process['actionary']
         protagonist = self.get_described_object(parameters['protagonist']['objectDescriptor'])
+        self.stop(protagonist)
+        #print(protagonist.name)
+        # DO SOMETHING HERE...
+
+
+    def command_continue(self, parameters):
+        process = parameters['process']
+        actionary = process['actionary']
+        protagonist = self.get_described_object(parameters['protagonist']['objectDescriptor'])
+        self.resume(protagonist)
         #print(protagonist.name)
         # DO SOMETHING HERE...
 
@@ -255,12 +266,19 @@ class BasicRobotProblemSolver(CoreProblemSolver): #, TwoDimensionalAvoidanceSolv
             # TO DO: What to do here?
             #print("Command_move, no destination.")
 
+    def get_default_protagonist(self):
+        if len(self.recent_protagonists) > 0:
+            return self.recent_protagonists[-1]
+        return getattr(self.world, "robot1_instance")
+
     def get_move_info(self, parameters):
         information = dict(destination=None,
                            protagonist=None,
                            speed=None)
 
         information['protagonist'] = self.get_described_object(parameters['protagonist']['objectDescriptor'])
+        if information['protagonist'] is None:
+            information['protagonist'] = self.get_default_protagonist()
         information['speed'] = parameters['speed'] * self._speed
         #spg = selparameters['spg']
 
@@ -354,7 +372,7 @@ class BasicRobotProblemSolver(CoreProblemSolver): #, TwoDimensionalAvoidanceSolv
 
     def push_direction(self, heading, actedUpon, distance, protagonist):
         info = self.get_push_direction_info(heading, actedUpon, distance['scaleDescriptor']['value'])
-        self.move(protagonist, info['x1'], info['y1'], tolerance=4)
+        self.move(protagonist, info['x1'], info['y1'], tolerance=2.5)
         self.move(protagonist, info['x2'], info['y2'], tolerance=3, collide=True)
 
 
@@ -375,6 +393,8 @@ class BasicRobotProblemSolver(CoreProblemSolver): #, TwoDimensionalAvoidanceSolv
         else:
             heading = None
         protagonist = self.get_described_object(parameters['protagonist']['objectDescriptor'])
+        if protagonist is None:
+            protagonist = self.get_default_protagonist()
         goal = parameters['affectedProcess']['spg']['spgDescriptor']['goal']
         distance = parameters['affectedProcess']['distance']
         info = dict(goal=None,
@@ -616,7 +636,7 @@ class BasicRobotProblemSolver(CoreProblemSolver): #, TwoDimensionalAvoidanceSolv
             return None
         else:
             message = "Sorry, I don't know what the {} is.".format(self.assemble_string(description))
-            self.identification_failure(message)
+            #self.identification_failure(message)  #TESTING, for speech and unmentioned referents
             return None
 
     def tag_ntuple(self, ntuple, description, k=None):
@@ -1088,6 +1108,7 @@ class BasicRobotProblemSolver(CoreProblemSolver): #, TwoDimensionalAvoidanceSolv
 
 
     def move(self, mover, x, y, z=1.0, speed=2, tolerance=3, collide=False):
+        self.recent_protagonists.append(mover)
         
         msg = "{} is moving to ({}, {}, {}).".format(mover.name, x, y, z)
         #print()

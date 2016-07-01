@@ -59,6 +59,16 @@ class XnetMorseSolver(MorseRobotProblemSolver, QueueSolver):#, XnetRobotSolver):
 ##        print('exiting xnet solver move')
         self.update_world(agent=mover)
 
+
+    def stop(self, mover):
+##        print('xnet solver stop requested')
+        self.solver_command_processor.set_suspended_expected(True)
+        mover.suspend() 
+
+    def resume(self, mover):
+        self.solver_command_processor.set_continue_expected(False)        
+        mover.resume()
+
 if __name__ == "__main__":
     solver = XnetMorseSolver(sys.argv[1:])
     #solver = XnetRobotSolver(sys.argv[1:])
