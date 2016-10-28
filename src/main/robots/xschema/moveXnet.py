@@ -24,22 +24,22 @@ class MoveXnet(BaseXnet):
         self.pos = Struct(**pos)
 
     def currentLocation(self, currentX, currentY):
-        self.morseChannel.updateCurrentLocation(currentX+0.0, currentY+0.0)
+        self.motionChannel.updateCurrentLocation(currentX+0.0, currentY+0.0)
 
     def targetLocation(self, targetX, targetY):
 ##        print('move x, y: ', targetX, targetY)
-        self.morseChannel.updateTargetLocation(targetX+0.0, targetY+0.0)
+        self.motionChannel.updateTargetLocation(targetX+0.0, targetY+0.0)
 
     def setSpeed(self, speed):
-        self.morseChannel.setSpeed(speed+0.0)
+        self.motionChannel.setSpeed(speed+0.0)
 
     def setTolerance(self, tolerance):
-        self.morseChannel.setTolerance(tolerance+0.0)
+        self.motionChannel.setTolerance(tolerance+0.0)
 
     def setCollide(self, collide):
-        self.morseChannel.setCollide(collide)
+        self.motionChannel.setCollide(collide)
 
-    def moveMorse(self, command): 
+    def moveMover(self, command): 
         motion = command['motion']
         #where = { 'x':['x'], 'y':['y'], 'z':0.0, 'collide':False, 'speed':2.0, 'tolerance':4}
         #print(self.printts(), 'where: ', motion)
@@ -47,38 +47,38 @@ class MoveXnet(BaseXnet):
         #TODO sleeping should be done in the xnet Wait timed transition, when it works  
         #self.robot._morse.sleep(0.1)
  
-    def suspendMorse(self, command):
-        #print('suspendMorse')
+    def suspendMover(self, command):
+        #print('suspendMover')
         self.robot.motion.stop()
 
-    def resumeMorse(self, command):
-        #print('resumeMorse')
+    def resumeMover(self, command):
+        #print('resumeMover')
         self.robot.motion.resume()
 
-    def restartMorse(self, command):
-        #print('restartMorse')
+    def restartMover(self, command):
+        #print('restartMover')
         #TODO 
         self.robot.motion.resume()
 
-    def updateMorsePosition(self, command):
-        #print('updateMorsePosition', self.pos.x, self.pos.y)
+    def updateMoverPosition(self, command):
+        #print('updateMoverPosition', self.pos.x, self.pos.y)
         self.currentLocation(self.pos.x, self.pos.y)
         #self.robot._morse.sleep(0.1)
         #TODO 
         #self.robot.motion.resume()
         if self.robot.motion.get_status() == 'Arrived':
            #print('arrived!')
-           self.morseChannel.setStatus(2)  
+           self.motionChannel.setStatus(2)  
            # 2 = arrived
 
-    def callMorse(self, commandJson): 
-##        print('in callMorse') 
+    def callMover(self, commandJson): 
+##        print('in callMover') 
         command = json.loads(commandJson)
         #self.queue.put(command)
         #print('command dict: ', command)
         #TODO:  validate
         methodName = command['command']
-        #print(self.printts(), ' callMorse: method to invoke: ',methodName)
+        #print(self.printts(), ' callMover: method to invoke: ',methodName)
         #print(self.__dict__) 
         self.commands[methodName](self,command)
         # yield to other threads 
@@ -97,21 +97,21 @@ class MoveXnet(BaseXnet):
     def buildCommands(self):
         #print(self.__dict__) 
         self.commands = {}
-        self.addCommand('moveMorse')
-        self.addCommand('suspendMorse')
-        self.addCommand('resumeMorse')
-        self.addCommand('restartMorse')
-        self.addCommand('updateMorsePosition')
+        self.addCommand('moveMover')
+        self.addCommand('suspendMover')
+        self.addCommand('resumeMover')
+        self.addCommand('restartMover')
+        self.addCommand('updateMoverPosition')
         #print('commands: ',self.commands)
 
     def setup(self):
-        self.morseChannel = JClass('edu.berkeley.icsi.xnet.MorseChannel')()
-        proxy = JProxy('edu.berkeley.icsi.xnet.Morse', inst=self)
-        self.morseChannel.setMorse(proxy)
-        self.runner.setTransitionContext("Move", self.morseChannel);           
-        self.runner.setTransitionContext("SuspendT", self.morseChannel);           
-        self.runner.setTransitionContext("ResumeT", self.morseChannel);           
-        self.runner.setTransitionContext("RestartT", self.morseChannel);           
+        self.motionChannel = JClass('edu.berkeley.icsi.xnet.MotionChannel')()
+        proxy = JProxy('edu.berkeley.icsi.xnet.Mover', inst=self)
+        self.motionChannel.setMover(proxy)
+        self.runner.setTransitionContext("Move", self.motionChannel);           
+        self.runner.setTransitionContext("SuspendT", self.motionChannel);           
+        self.runner.setTransitionContext("ResumeT", self.motionChannel);           
+        self.runner.setTransitionContext("RestartT", self.motionChannel);           
 
         self.buildCommands()
 ##        print('MoveXnet setup complete')

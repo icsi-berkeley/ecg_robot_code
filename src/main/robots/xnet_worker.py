@@ -41,7 +41,6 @@ class XnetWorker(object):
 
     def add_command_processor_as_listener(self, listener):
         # listen to all state changes; used to get control to check for new commands
-##        print('in simulator.addCommandProcessorAsListener')
         self.command_processor_listener = listener
         if not self.xnet == None:
             self.xnet.listenAllStateChanges(self.command_processor_listener)

@@ -43,6 +43,7 @@ class SolverCommandProcessor(Thread):
 ##        print('SolverCommandProcessor init complete')
 
     def checkAndRunCommand(self):
+        #print('queue_solver.checkAndRunCommand') 
         if not self.commandQ.empty():
             if (self.next_command_priority() < self.last_command_priority()) or self.command_done or self.other_command_done or (self.continue_dequeue and self.suspended_command_completed):
                 command = self.commandQ.get()
@@ -122,6 +123,7 @@ class SolverCommandProcessor(Thread):
 
             
     def propertyChange(self,javaObject):
+        #print('queue_solver.propertyChange: ',javaObject.getPropertyName())
         if javaObject.getPropertyName() == 'state updated':  
             #print('SolverCommandProcessor propertyChange, about to check and run command')
             self.checkAndRunCommand()
