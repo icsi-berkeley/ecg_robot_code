@@ -19,6 +19,7 @@ class FiringListener(object):
         return st
 
     def printState(self):
+        #print('in printState')
         stateList = []
         state = self.javaObject.getNewValue().state
         it = state.getPlaces().iterator()
@@ -34,6 +35,7 @@ class FiringListener(object):
         #print(self.printts(), stateList)
     
     def propertyChange(self,javaObject):
+        #print('firing listener property change: ', javaObject.getPropertyName()) 
         if javaObject.getPropertyName() == 'state updated':  
             self.javaObject = javaObject
             self.printState()
@@ -78,19 +80,21 @@ class PlaceListener(object):
         #print(self.petrinet.__dict__)
 
     def propertyChange(self,javaObject):
+        #print('petrinet.propertyChange: ',javaObject.getPropertyName())
         #print(self.printts(), 'updated place ', end='')
         #print(self.placeId, end='')
         #print(': ', end='')
         #print(javaObject.getNewValue())
-        self.javaObject = javaObject
-        self.count = self.convertObjectToDigit()
-        # updateTargetField delegated to subclasses
-        self.updateTargetField()
-        if self.call_evaluator():
-            if self.evaluatorArgs is None:
-                self.evaluator()
-            else: 
-                self.evaluator(self.evaluatorArgs)
+        if javaObject.getPropertyName() == 'tokens':
+            self.javaObject = javaObject
+            self.count = self.convertObjectToDigit()
+            # updateTargetField delegated to subclasses
+            self.updateTargetField()
+            if self.call_evaluator():
+                if self.evaluatorArgs is None:
+                    self.evaluator()
+                else: 
+                    self.evaluator(self.evaluatorArgs)
 
     def getPlaceId(self):
         return self.placeId
