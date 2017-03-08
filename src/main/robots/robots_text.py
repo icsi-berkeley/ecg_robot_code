@@ -1,5 +1,5 @@
 """
-Subclasses text_agent. 
+Subclasses text_agent.
 
 ------
 See LICENSE.txt for licensing information.
@@ -16,5 +16,4 @@ class RobotTextAgent(TextAgent):
 
 if __name__ == "__main__":
 	text = RobotTextAgent(sys.argv[1:])
-	while True:
-		text.prompt()
+	text.keep_alive(text.prompt)
